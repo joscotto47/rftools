@@ -284,7 +284,11 @@ export default function Channels() {
           <div className="power-limit-grid">
             <PowerLimit
               label="Max TX Power"
-              value={powerLimits.maxConductedDbm !== undefined ? `${powerLimits.maxConductedDbm.toFixed(2)} dBm` : 'Depende da categoria'}
+              value={
+                powerLimits.baseMaxConductedDbm !== undefined
+                  ? `${powerLimits.baseMaxConductedDbm.toFixed(2)} dBm`
+                  : 'Depende da categoria'
+              }
             />
             <PowerLimit
               label="Max EIRP"
