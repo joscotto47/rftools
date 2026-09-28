@@ -4,45 +4,16 @@ import {
   Settings, Zap
 } from 'lucide-react'
 import { useState } from 'react'
+import { TOOLS } from '../data/tools'
+import type { ToolCategory } from '../types'
 
-const sections = [
-  {
-    label: 'RF',
-    icon: Antenna,
-    items: [
-      ['Conversor dBm', '/rf/dbm'],
-      ['Calculadora de EIRP', '/rf/eirp'],
-      ['Link Budget', '/rf/link-budget'],
-      ['RF Attenuation', '/rf/attenuation'],
-      ['Antenna Tools', '/rf/antenna'],
-      ['Noise / SNR', '/rf/noise-snr'],
-    ],
-  },
-  {
-    label: 'Wi-Fi',
-    icon: Radio,
-    items: [
-      ['Mapa de Canais', '/wifi/channels'],
-      ['PHY Rate', '/wifi/phy-rate'],
-      ['Wi-Fi Capacity', '/wifi/capacity'],
-      ['Network Planner', '/wifi/planner'],
-    ],
-  },
-  {
-    label: 'Networking',
-    icon: Network,
-    items: [
-      ['Subnet IPv4', '/networking/subnet'],
-    ],
-  },
-  {
-    label: 'PoE',
-    icon: Zap,
-    items: [
-      ['Calculadora de PoE', '/poe'],
-    ],
-  },
-]
+const SECTION_ICONS: Record<ToolCategory, typeof Antenna> = { RF: Antenna, 'Wi-Fi': Radio, Networking: Network, PoE: Zap }
+
+const sections = (Object.keys(SECTION_ICONS) as ToolCategory[]).map((label) => ({
+  label,
+  icon: SECTION_ICONS[label],
+  items: TOOLS.filter((tool) => tool.category === label).map((tool) => [tool.name, tool.path] as const),
+}))
 
 export default function Layout() {
   const [open, setOpen] = useState<Record<string, boolean>>(Object.fromEntries(sections.map((s) => [s.label, true])))

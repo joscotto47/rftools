@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom'
-import { ArrowUpRight, Antenna, Radio, Network, Activity, Zap } from 'lucide-react'
-import type { Tool } from '../types'
+import { ArrowUpRight, Antenna, Radio, Network, Zap } from 'lucide-react'
+import type { Tool, ToolCategory } from '../types'
 
-const icons = { RF: Antenna, 'Wi-Fi': Radio, Networking: Network, Performance: Activity, PoE: Zap }
+const icons: Record<ToolCategory, typeof Antenna> = { RF: Antenna, 'Wi-Fi': Radio, Networking: Network, PoE: Zap }
 
 export default function ToolCard({ tool }: { tool: Tool }) {
   const Icon = icons[tool.category]
