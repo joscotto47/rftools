@@ -97,10 +97,6 @@ input:focus, select:focus { border-color:#3e635d; box-shadow:0 0 0 2px #63e6be0d
 .info-panel { margin-top:14px; border:1px solid var(--border); border-radius:12px; padding:22px; background:#0c1117; }
 .info-panel h3 { font-size:13px; margin:9px 0 7px; }
 .info-panel p { color:#687583; font-size:11px; line-height:1.6; max-width:760px; }
-.empty-state { min-height:330px; border:1px dashed #28343e; border-radius:12px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; color:#687583; }
-.empty-state svg { color:#52616e; }
-.empty-state h2 { color:#aab5bf; font-size:15px; margin:14px 0 6px; }
-.empty-state p { max-width:480px; font-size:11px; line-height:1.6; }
 @media (max-width: 950px) {
   .sidebar { width:210px; flex-basis:210px; }
   .content { padding:28px 22px 60px; }

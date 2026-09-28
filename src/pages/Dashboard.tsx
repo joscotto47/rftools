@@ -1,19 +1,6 @@
 import { Radio, Calculator, ArrowRight, Activity, Wifi } from 'lucide-react'
 import ToolCard from '../components/ToolCard'
-import type { Tool } from '../types'
-
-const tools: Tool[] = [
-  { title: 'dBm Converter', description: 'Convert dBm to mW/W and back with precision.', path: '/rf/dbm', category: 'RF', icon: 'antenna' },
-  { title: 'EIRP Calculator', description: 'Calculate effective isotropic radiated power.', path: '/rf/eirp', category: 'RF', icon: 'antenna' },
-  { title: 'FSPL Calculator', description: 'Estimate free-space path loss from distance and frequency.', path: '/rf/fspl', category: 'RF', icon: 'antenna' },
-  { title: 'Link Budget', description: 'Build a complete RF link budget from TX to RX.', path: '/rf/link-budget', category: 'RF', icon: 'antenna' },
-  { title: 'Wi-Fi Channel Map', description: 'Explore 2.4, 5 and 6 GHz channel allocation.', path: '/wifi/channels', category: 'Wi-Fi', icon: 'radio' },
-  { title: 'PHY Rate Calculator', description: 'Estimate Wi-Fi PHY rate from MCS, NSS and bandwidth.', path: '/wifi/phy-rate', category: 'Wi-Fi', icon: 'radio' },
-  { title: 'MCS Reference', description: 'Quick reference for Wi-Fi modulation and coding rates.', path: '/wifi/mcs', category: 'Wi-Fi', icon: 'radio' },
-  { title: 'IPv4 Subnet Calculator', description: 'Calculate network, broadcast, hosts and masks.', path: '/networking/subnet', category: 'Networking', icon: 'network' },
-  { title: 'TCP BDP Calculator', description: 'Calculate bandwidth-delay product and TCP window.', path: '/performance/bdp', category: 'Performance', icon: 'activity' },
-  { title: 'PoE Calculator', description: 'Estimate PoE power budget and cable losses.', path: '/poe', category: 'PoE', icon: 'zap' },
-]
+import { TOOLS as tools } from '../data/tools'
 
 export default function Dashboard() {
   return (
