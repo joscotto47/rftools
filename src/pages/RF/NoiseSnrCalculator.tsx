@@ -18,17 +18,26 @@ import {
 } from '../../data/wifiSnr'
 import { formatNumber } from '../../calculations/rf'
 
+const ABSOLUTE_ZERO_C = 273.15
+const DEFAULT_TEMPERATURE_C = '16.85'
+
 export default function NoiseSnrCalculator() {
   const [generation, setGeneration] = useState<WifiGeneration>('Wi-Fi 6')
   const [widthMHz, setWidthMHz] = useState(80)
   const [noiseFigureDb, setNoiseFigureDb] = useState(7)
-  const [temperatureK, setTemperatureK] = useState(290)
+  // 290 K is the IEEE reference temperature for noise figure (T0).
+  const [temperatureC, setTemperatureC] = useState(DEFAULT_TEMPERATURE_C)
   const [signalDbm, setSignalDbm] = useState('-58')
   const [mcs, setMcs] = useState(9)
 
   const requiredSnr =
     requiredSnrForMcs(generation, mcs) ??
     MCS_REQUIRED_SNR[generation][MCS_REQUIRED_SNR[generation].length - 1].requiredSnrDb
+
+  const parsedTemperatureC = Number(temperatureC)
+  const temperatureK = Number.isFinite(parsedTemperatureC) && parsedTemperatureC > -ABSOLUTE_ZERO_C
+    ? parsedTemperatureC + ABSOLUTE_ZERO_C
+    : Number.NaN
 
   const parsedSignalDbm = Number(signalDbm)
   const validSignalDbm = Number.isFinite(parsedSignalDbm)
@@ -85,7 +94,7 @@ export default function NoiseSnrCalculator() {
     setGeneration('Wi-Fi 6')
     setWidthMHz(80)
     setNoiseFigureDb(7)
-    setTemperatureK(290)
+    setTemperatureC(DEFAULT_TEMPERATURE_C)
     setSignalDbm('-58')
     setMcs(9)
   }
@@ -160,11 +169,13 @@ export default function NoiseSnrCalculator() {
             placeholder="-58"
           />
 
-          <NumberField
+          <SignedNumberField
             label="Temperature"
-            value={temperatureK}
-            onChange={setTemperatureK}
-            unit="K"
+            value={temperatureC}
+            onChange={setTemperatureC}
+            unit="°C"
+            placeholder={DEFAULT_TEMPERATURE_C}
+            fallback={DEFAULT_TEMPERATURE_C}
           />
         </div>
       </section>
@@ -175,12 +186,18 @@ export default function NoiseSnrCalculator() {
         </div>
       )}
 
+      {!Number.isFinite(temperatureK) && (
+        <div className="signal-input-warning">
+          Digite uma temperatura acima de −273,15 °C (zero absoluto), por exemplo <strong>25</strong>.
+        </div>
+      )}
+
       <div className="noise-metrics-grid">
         <Metric
           icon={<Waves size={18}/>}
           label="Thermal Noise"
           value={`${formatNumber(result.thermal, 2)} dBm`}
-          note={`${formatNumber(result.density, 2)} dBm/Hz @ ${temperatureK} K`}
+          note={`${formatNumber(result.density, 2)} dBm/Hz @ ${formatNumber(parsedTemperatureC, 2)} °C (${formatNumber(temperatureK, 2)} K)`}
         />
         <Metric
           icon={<Activity size={18}/>}
@@ -336,12 +353,14 @@ function SignedNumberField({
   onChange,
   unit,
   placeholder,
+  fallback = '-58',
 }: {
   label: string
   value: string
   onChange: (value: string) => void
   unit: string
   placeholder?: string
+  fallback?: string
 }) {
   return (
     <div className="noise-field">
@@ -364,7 +383,7 @@ function SignedNumberField({
           }}
           onBlur={() => {
             if (value === '' || value === '-' || !Number.isFinite(Number(value))) {
-              onChange('-58')
+              onChange(fallback)
             }
           }}
         />
