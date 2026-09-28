@@ -1,4 +1,10 @@
-import type { ChannelConfig, ChannelWidth, WifiBand } from './wifiChannels'
+import { CHANNEL_CONFIGS, type ChannelConfig, type ChannelWidth, type WifiBand } from './wifiChannels'
+
+/**
+ * Upper edge of 6 GHz Wi-Fi in Brazil. Ato nº 10400/2026 reduced the band from 5.925–7.125 MHz
+ * to 5.925–6.425 MHz (mandatory from 2027-03-01) to free the upper part for IMT.
+ */
+export const ANATEL_6GHZ_MAX_MHZ = 6425
 
 export type RegulatoryProfile = 'IEEE' | 'BR-ANATEL'
 
@@ -34,13 +40,16 @@ const BRAZIL_ALLOWED_CHANNELS: Record<WifiBand, AllowedMap> = {
     160: [50,114],
   },
 
-  '6 GHz': {
-    20: Array.from({ length: 59 }, (_, i) => 1 + i * 4),
-    40: Array.from({ length: 29 }, (_, i) => 3 + i * 8),
-    80: Array.from({ length: 14 }, (_, i) => 7 + i * 16),
-    160: Array.from({ length: 7 }, (_, i) => 15 + i * 32),
-    320: [31,63,95,127,159,191],
-  },
+  // Only blocks that fit entirely inside 5.925–6.425 MHz.
+  '6 GHz': Object.fromEntries(
+    ([20, 40, 80, 160, 320] as ChannelWidth[]).map(width => [
+      width,
+      CHANNEL_CONFIGS
+        .filter(c => c.band === '6 GHz' && c.width === width)
+        .filter(c => c.frequencyMHz + width / 2 <= ANATEL_6GHZ_MAX_MHZ)
+        .map(c => c.channel),
+    ]),
+  ),
 }
 
 export function getOccupiedRange(config: ChannelConfig) {
@@ -72,7 +81,9 @@ export function checkRegulatory(
       allowed: false,
       status: 'restricted',
       label: 'Fora do perfil ANATEL',
-      note: `O Center Channel ${config.channel} não está listado como válido para ${config.width} MHz neste perfil.`,
+      note: config.band === '6 GHz'
+        ? `O bloco do Center Channel ${config.channel} passa de ${ANATEL_6GHZ_MAX_MHZ} MHz. No Brasil, o Wi-Fi em 6 GHz fica restrito a 5.925–${ANATEL_6GHZ_MAX_MHZ} MHz (Ato nº 10400/2026, obrigatório a partir de 01/03/2027).`
+        : `O Center Channel ${config.channel} não está listado como válido para ${config.width} MHz neste perfil.`,
     }
   }
 
@@ -81,7 +92,7 @@ export function checkRegulatory(
       allowed: true,
       status: 'allowed',
       label: 'Permitido no perfil ANATEL',
-      note: 'Canalização permitida no perfil de referência. Em 6 GHz, condições de operação dependem da categoria do equipamento e dos requisitos técnicos aplicáveis.',
+      note: 'Dentro de 5.925–6.425 MHz (Ato nº 10400/2026). Uso indoor para pontos de acesso e clientes; limites dependem da categoria do equipamento.',
     }
   }
 
