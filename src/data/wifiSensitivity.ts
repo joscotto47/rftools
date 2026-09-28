@@ -1,4 +1,5 @@
 import type { WifiGeneration } from '../calculations/phyRate'
+import { type Localized } from '../i18n'
 
 export type SensitivityEntry = {
   mcs: number
@@ -83,7 +84,7 @@ export type SensitivityProfile = {
   name: string
   generation: WifiGeneration
   base20MHz: SensitivityEntry[]
-  description?: string
+  description?: Localized
 }
 
 export const BUILTIN_SENSITIVITY_PROFILES: SensitivityProfile[] = [
@@ -92,21 +93,21 @@ export const BUILTIN_SENSITIVITY_PROFILES: SensitivityProfile[] = [
     name: 'Generic Wi-Fi 5',
     generation: 'Wi-Fi 5',
     base20MHz: BASE_SENSITIVITY_20MHZ['Wi-Fi 5'],
-    description: 'Perfil genérico de referência para 802.11ac.',
+    description: { pt: "Perfil genérico de referência para 802.11ac.", en: "Generic reference profile for 802.11ac." },
   },
   {
     id: 'generic-wifi6',
     name: 'Generic Wi-Fi 6',
     generation: 'Wi-Fi 6',
     base20MHz: BASE_SENSITIVITY_20MHZ['Wi-Fi 6'],
-    description: 'Perfil genérico de referência para 802.11ax.',
+    description: { pt: "Perfil genérico de referência para 802.11ax.", en: "Generic reference profile for 802.11ax." },
   },
   {
     id: 'generic-wifi7',
     name: 'Generic Wi-Fi 7',
     generation: 'Wi-Fi 7',
     base20MHz: BASE_SENSITIVITY_20MHZ['Wi-Fi 7'],
-    description: 'Perfil genérico de referência para 802.11be.',
+    description: { pt: "Perfil genérico de referência para 802.11be.", en: "Generic reference profile for 802.11be." },
   },
 ]
 

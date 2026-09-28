@@ -1,3 +1,4 @@
+import { type Localized } from '../i18n'
 export type TrafficModel = 'BALANCED' | 'DOWNLOAD_HEAVY' | 'UPLOAD_HEAVY'
 
 export function effectiveCapacityMbps(
@@ -53,34 +54,34 @@ export function classifyCapacity(
   airtimeLimitPercent: number,
 ): {
   label: 'EXCELLENT' | 'GOOD' | 'BUSY' | 'OVERLOADED'
-  description: string
+  description: Localized
 } {
   const ratio = airtimeDemandPercent / airtimeLimitPercent
 
   if (ratio <= 0.5) {
     return {
       label: 'EXCELLENT',
-      description: 'Há bastante folga de airtime para crescimento e retransmissões.',
+      description: { pt: "Há bastante folga de airtime para crescimento e retransmissões.", en: "Plenty of airtime headroom for growth and retransmissions." },
     }
   }
 
   if (ratio <= 0.8) {
     return {
       label: 'GOOD',
-      description: 'A carga estimada está dentro de uma faixa confortável.',
+      description: { pt: "A carga estimada está dentro de uma faixa confortável.", en: "Estimated load is within a comfortable range." },
     }
   }
 
   if (ratio <= 1) {
     return {
       label: 'BUSY',
-      description: 'O airtime está próximo do limite definido para operação.',
+      description: { pt: "O airtime está próximo do limite definido para operação.", en: "Airtime is close to the operating limit you set." },
     }
   }
 
   return {
     label: 'OVERLOADED',
-    description: 'A demanda estimada excede o airtime disponível.',
+    description: { pt: "A demanda estimada excede o airtime disponível.", en: "Estimated demand exceeds the available airtime." },
   }
 }
 

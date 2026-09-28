@@ -26,11 +26,13 @@ import {
   type ApplicationType,
   type RegulatoryDeviceType,
 } from '../../data/regulatoryPower'
+import { useI18n } from '../../i18n'
 
 const STREAM_OPTIONS = [1, 2, 3, 4, 8]
 const BANDS: WifiBand[] = ['2.4 GHz', '5 GHz', '6 GHz']
 
 export default function EirpCalculator() {
+  const { t, tl } = useI18n()
   const [txPower, setTxPower] = useState('23')
   const [antennaGain, setAntennaGain] = useState('5')
   const [pathLoss, setPathLoss] = useState('1')
@@ -135,47 +137,46 @@ export default function EirpCalculator() {
     setChannel(first?.channel ?? 1)
   }
 
-  const formula = 'EIRP = TX Power por cadeia + 10·log₁₀(cadeias) + Antenna Gain − Cable Loss'
+  const formula = t("EIRP = TX Power por cadeia + 10·log₁₀(cadeias) + Ganho da antena − Perda no cabo", "EIRP = TX power per chain + 10·log₁₀(chains) + Antenna gain − Cable loss")
 
   return (
     <div>
       <div className="page-title">
         <div>
-          <div className="eyebrow">RF / POWER</div>
-          <h1>Calculadora de EIRP</h1>
+          <div className="eyebrow">{t("RF / POTÊNCIA", "RF / POWER")}</div>
+          <h1>{t("Calculadora de EIRP", "EIRP Calculator")}</h1>
           <p>
-            Calcule EIRP considerando TX Power, Antenna Gain, perdas e cadeias de transmissão,
-            e compare o resultado com o perfil Brasil / ANATEL.
+            {t("Calcule a EIRP considerando potência de TX, ganho da antena, perdas e cadeias de transmissão, e compare o resultado com o perfil Brasil / ANATEL.", "Calculate EIRP from TX power, antenna gain, losses and transmit chains, and compare the result with the Brazil / ANATEL profile.")}
           </p>
         </div>
         <button className="ghost-btn" onClick={reset}>
-          <RotateCcw size={15} /> Redefinir
+          <RotateCcw size={15} /> {t("Redefinir", "Reset")}
         </button>
       </div>
 
       <div className="calculator-layout">
         <section className="panel input-panel">
-          <div className="panel-title">Parâmetros RF</div>
+          <div className="panel-title">{t("Parâmetros RF", "RF parameters")}</div>
 
-          <label>TX Power por cadeia de TX</label>
+          <label>{t("Potência de TX por cadeia", "TX power per chain")}</label>
           <div className="field-with-unit">
             <input value={txPower} onChange={(e) => setTxPower(e.target.value)} inputMode="decimal" />
             <span>dBm</span>
           </div>
 
-          <label>Antenna Gain</label>
+          <label>{t("Ganho da antena", "Antenna gain")}</label>
           <div className="field-with-unit">
             <input value={antennaGain} onChange={(e) => setAntennaGain(e.target.value)} inputMode="decimal" />
             <span>dBi</span>
           </div>
 
-          <label>Cable Loss</label>
+          <label>{t("Perda no cabo", "Cable loss")}</label>
           <div className="field-with-unit">
             <input value={pathLoss} onChange={(e) => setPathLoss(e.target.value)} inputMode="decimal" />
             <span>dB</span>
           </div>
 
-          <label>Cadeias de TX (antenas transmitindo)</label>
+          <label>{t("Cadeias de TX (antenas transmitindo)", "TX chains (transmitting antennas)")}</label>
           <select
             className="full-select"
             value={spatialStreams}
@@ -183,13 +184,13 @@ export default function EirpCalculator() {
           >
             {STREAM_OPTIONS.map((streams) => (
               <option key={streams} value={streams}>
-                {streams} {streams > 1 ? 'cadeias' : 'cadeia'}
+                {streams} {streams > 1 ? t("cadeias", "chains") : t("cadeia", "chain")}
               </option>
             ))}
           </select>
 
           <div className="formula-box">
-            <span>Fórmula</span>
+            <span>{t("Fórmula", "Formula")}</span>
             <code>{formula}</code>
           </div>
         </section>
@@ -197,7 +198,7 @@ export default function EirpCalculator() {
         <div className="conversion-arrow"></div>
 
         <section className="panel results-panel">
-          <div className="panel-title">Resultado</div>
+          <div className="panel-title">{t("Resultado", "Result")}</div>
 
           <div className="eirp-hero">
             <span>EIRP</span>
@@ -211,7 +212,7 @@ export default function EirpCalculator() {
 
           <div className="result-row">
             <div>
-              <span>TX Power por cadeia</span>
+              <span>{t("Potência de TX por cadeia", "TX power per chain")}</span>
               <strong>{values ? `${formatNumber(values.tx, 3)} dBm` : '—'}</strong>
             </div>
             <CopyButton value={values ? `${values.tx} dBm` : ''} />
@@ -219,21 +220,21 @@ export default function EirpCalculator() {
 
           <div className="result-row">
             <div>
-              <span>Antenna Gain</span>
+              <span>{t("Ganho da antena", "Antenna gain")}</span>
               <strong>{values ? `${formatNumber(values.gain, 3)} dBi` : '—'}</strong>
             </div>
           </div>
 
           <div className="result-row">
             <div>
-              <span>Potência conduzida total</span>
+              <span>{t("Potência conduzida total", "Total conducted power")}</span>
               <strong>{values ? `${formatNumber(values.tx + values.streamFactorDb, 3)} dBm` : '—'}</strong>
             </div>
           </div>
 
           <div className="result-row">
             <div>
-              <span>Soma das {values?.spatialStreams ?? ''} cadeias</span>
+              <span>{t(`Soma das ${values?.spatialStreams ?? ''} cadeias`, `Sum of ${values?.spatialStreams ?? ''} chains`)}</span>
               <strong>{values ? `+${formatNumber(values.streamFactorDb, 3)} dB` : '—'}</strong>
             </div>
           </div>
@@ -243,8 +244,8 @@ export default function EirpCalculator() {
       <section className="panel eirp-reg-panel">
         <div className="eirp-reg-title">
           <div>
-            <div className="panel-title">Regulatory Check</div>
-            <h3>Brasil / ANATEL</h3>
+            <div className="panel-title">{t("Verificação regulatória", "Regulatory check")}</div>
+            <h3>{t("Brasil / ANATEL", "Brazil / ANATEL")}</h3>
           </div>
           <label className="reg-toggle">
             <input
@@ -252,7 +253,7 @@ export default function EirpCalculator() {
               checked={regulatoryEnabled}
               onChange={(e) => setRegulatoryEnabled(e.target.checked)}
             />
-            <span>Ativar verificação</span>
+            <span>{t("Ativar verificação", "Enable check")}</span>
           </label>
         </div>
 
@@ -260,14 +261,14 @@ export default function EirpCalculator() {
           <>
             <div className="eirp-reg-controls">
               <div>
-                <label>Band</label>
+                <label>{t("Banda", "Band")}</label>
                 <select value={band} onChange={(e) => changeBand(e.target.value as WifiBand)}>
                   {BANDS.map((item) => <option key={item}>{item}</option>)}
                 </select>
               </div>
 
               <div>
-                <label>Channel Width</label>
+                <label>{t("Largura de canal", "Channel width")}</label>
                 <select
                   value={width}
                   onChange={(e) => changeWidth(Number(e.target.value) as ChannelWidth)}
@@ -279,7 +280,7 @@ export default function EirpCalculator() {
               </div>
 
               <div>
-                <label>{width === 20 ? 'Channel' : 'Center Channel'}</label>
+                <label>{width === 20 ? t("Canal", "Channel") : t("Canal central", "Center channel")}</label>
                 <select value={selectedConfig?.channel ?? channel} onChange={(e) => setChannel(Number(e.target.value))}>
                   {channelConfigs.map((item) => (
                     <option key={item.channel} value={item.channel}>
@@ -290,26 +291,26 @@ export default function EirpCalculator() {
               </div>
 
               <div>
-                <label>Tipo de equipamento</label>
+                <label>{t("Tipo de equipamento", "Device type")}</label>
                 <select
                   value={deviceType}
                   onChange={(e) => setDeviceType(e.target.value as RegulatoryDeviceType)}
                 >
-                  <option value="AP">Access Point</option>
-                  <option value="CLIENT">Client</option>
-                  {band === '6 GHz' && <option value="VLP">Very Low Power</option>}
+                  <option value="AP">{t("Ponto de acesso", "Access point")}</option>
+                  <option value="CLIENT">{t("Cliente", "Client")}</option>
+                  {band === '6 GHz' && <option value="VLP">{t("Potência muito baixa (VLP)", "Very low power (VLP)")}</option>}
                 </select>
               </div>
 
               {band !== '6 GHz' && (
                 <div>
-                  <label>Application Type</label>
+                  <label>{t("Tipo de aplicação", "Application type")}</label>
                   <select
                     value={applicationType}
                     onChange={(e) => setApplicationType(e.target.value as ApplicationType)}
                   >
-                    <option value="GENERAL">General / AP / PtMP</option>
-                    <option value="FIXED_PTP">Fixed Point-to-Point</option>
+                    <option value="GENERAL">{t("Geral / AP / PtMP", "General / AP / PtMP")}</option>
+                    <option value="FIXED_PTP">{t("Ponto-a-ponto fixo", "Fixed point-to-point")}</option>
                   </select>
                 </div>
               )}
@@ -317,7 +318,7 @@ export default function EirpCalculator() {
               {band === '5 GHz' && (
                 <label className="reg-toggle">
                   <input type="checkbox" checked={hasTpc} onChange={(e) => setHasTpc(e.target.checked)} />
-                  <span>Possui TPC</span>
+                  <span>{t("Possui TPC", "Has TPC")}</span>
                 </label>
               )}
             </div>
@@ -329,38 +330,38 @@ export default function EirpCalculator() {
                     ? <CheckCircle2 size={25} />
                     : <XCircle size={25} />}
                   <div>
-                    <span>Regulatory Status</span>
+                    <span>{t("Status regulatório", "Regulatory status")}</span>
                     <strong>{regulatoryResult.pass ? 'PASS' : 'FAIL'}</strong>
                     <p>
                       {!regulatoryResult.bandPass
-                        ? 'O canal selecionado está fora das faixas permitidas para esta categoria.'
+                        ? t("O canal selecionado está fora das faixas permitidas para esta categoria.", "The selected channel is outside the bands allowed for this category.")
                         : regulatoryResult.pass
-                          ? 'Os valores calculados estão dentro dos limites numéricos mapeados para esta configuração.'
-                          : 'Um ou mais limites regulatórios numéricos foram excedidos.'}
+                          ? t("Os valores calculados estão dentro dos limites numéricos mapeados para esta configuração.", "The calculated values are within the numeric limits mapped for this configuration.")
+                          : t("Um ou mais limites regulatórios numéricos foram excedidos.", "One or more numeric regulatory limits were exceeded.")}
                     </p>
                   </div>
                 </div>
 
                 <div className="compliance-grid">
                   <ComplianceMetric
-                    title="EIRP calculado"
+                    title={t("EIRP calculada", "Calculated EIRP")}
                     current={`${formatNumber(regulatoryResult.eirpDbm, 2)} dBm`}
-                    limit={limits.maxEirpDbm !== undefined ? `${formatNumber(limits.maxEirpDbm, 2)} dBm` : 'sem limite direto de EIRP'}
+                    limit={limits.maxEirpDbm !== undefined ? `${formatNumber(limits.maxEirpDbm, 2)} dBm` : t("sem limite direto de EIRP", "no direct EIRP limit")}
                     margin={regulatoryResult.eirpMargin}
                     pass={regulatoryResult.eirpPass}
                   />
 
                   <ComplianceMetric
-                    title="Potência conduzida total"
+                    title={t("Potência conduzida total", "Total conducted power")}
                     current={`${formatNumber(regulatoryResult.totalConductedDbm, 2)} dBm`}
-                    limit={limits.adjustedMaxConductedDbm !== undefined ? `${formatNumber(limits.adjustedMaxConductedDbm, 2)} dBm` : 'sem limite conduzido (regra por EIRP)'}
+                    limit={limits.adjustedMaxConductedDbm !== undefined ? `${formatNumber(limits.adjustedMaxConductedDbm, 2)} dBm` : t("sem limite conduzido (regra por EIRP)", "no conducted limit (EIRP-based rule)")}
                     margin={regulatoryResult.conductedMargin}
                     pass={regulatoryResult.conductedPass}
                   />
 
                   {limits.adjustedMaxPsdDbmMHz !== undefined ? (
                     <ComplianceMetric
-                      title={limits.psdKind === 'EIRP' ? 'PSD EIRP estimada' : 'PSD conduzida estimada'}
+                      title={limits.psdKind === 'EIRP' ? t("PSD EIRP estimada", "Estimated EIRP PSD") : t("PSD conduzida estimada", "Estimated conducted PSD")}
                       current={`${formatNumber(limits.psdKind === 'EIRP' ? regulatoryResult.eirpPsdDbmMHz : regulatoryResult.conductedPsdDbmMHz, 2)} dBm/MHz`}
                       limit={`${formatNumber(limits.adjustedMaxPsdDbmMHz, 2)} dBm/MHz`}
                       margin={regulatoryResult.psdMargin}
@@ -368,36 +369,36 @@ export default function EirpCalculator() {
                     />
                   ) : (
                     <div className="compliance-card">
-                      <span>Max PSD</span>
-                      <strong>{limits.psdText ?? 'Não resumido'}</strong>
-                      <small>Referência regulatória</small>
+                      <span>{t("PSD máxima", "Max PSD")}</span>
+                      <strong>{limits.psdText ? tl(limits.psdText) : t("Não resumido", "Not summarized")}</strong>
+                      <small>{t("Referência regulatória", "Regulatory reference")}</small>
                     </div>
                   )}
 
                   <div className="compliance-card">
-                    <span>Condição</span>
+                    <span>{t("Condição", "Condition")}</span>
                     <strong>
                       {[
                         limits.indoorOnly ? 'Indoor' : null,
                         limits.dfsRequired ? 'DFS' : null,
-                      ].filter(Boolean).join(' · ') || 'Conforme regra'}
+                      ].filter(Boolean).join(' · ') || t("Conforme regra", "Per rule")}
                     </strong>
-                    <small>{limits.mixedSubBands ? 'Bloco cruza subfaixas' : 'Uma subfaixa principal'}</small>
+                    <small>{limits.mixedSubBands ? t("Bloco cruza subfaixas", "Block spans sub-bands") : t("Uma subfaixa principal", "Single sub-band")}</small>
                   </div>
 
                   <div className="compliance-card">
-                    <span>Antenna Gain Adjustment</span>
+                    <span>{t("Ajuste por ganho de antena", "Antenna gain adjustment")}</span>
                     <strong>
                       {limits.fixedPtpExemptionApplied
-                        ? 'Exceção PTP aplicada'
+                        ? t("Regra PtP aplicada", "PtP rule applied")
                         : limits.antennaReductionDb > 0
                           ? `−${formatNumber(limits.antennaReductionDb, 2)} dB`
-                          : 'Sem redução'}
+                          : t("Sem redução", "No reduction")}
                     </strong>
                     <small>
                       {limits.antennaThresholdDbi !== undefined
-                        ? `Threshold: ${formatNumber(limits.antennaThresholdDbi, 1)} dBi`
-                        : 'Sem threshold nesta regra'}
+                        ? `${t('Limiar', 'Threshold')}: ${formatNumber(limits.antennaThresholdDbi, 1)} dBi`
+                        : t("Sem limiar nesta regra", "No threshold in this rule")}
                     </small>
                   </div>
                 </div>
@@ -405,19 +406,19 @@ export default function EirpCalculator() {
                 {limits.note && (
                   <div className="regulatory-note-box">
                     <Info size={15}/>
-                    <p>{limits.note}</p>
+                    <p>{tl(limits.note)}</p>
                   </div>
                 )}
 
                 <div className="eirp-rule-summary">
-                  <div className="eyebrow"><ShieldCheck size={14}/> REGRAS APLICADAS</div>
+                  <div className="eyebrow"><ShieldCheck size={14}/> {t("REGRAS APLICADAS", "APPLIED RULES")}</div>
                   {limits.rules.map((rule) => (
                     <div className="eirp-rule-item" key={rule.id}>
                       <div>
-                        <strong>{rule.label}</strong>
+                        <strong>{tl(rule.label)}</strong>
                         <span>{rule.id}</span>
                       </div>
-                      <p>{rule.note}</p>
+                      <p>{rule.note ? tl(rule.note) : null}</p>
                     </div>
                   ))}
                 </div>
@@ -428,7 +429,7 @@ export default function EirpCalculator() {
       </section>
 
       <section className="panel reverse-panel">
-        <div className="panel-title">Cálculo reverso</div>
+        <div className="panel-title">{t("Cálculo reverso", "Reverse calculation")}</div>
         <div className="mode-tabs">
           <button className={mode === 'eirp' ? 'selected' : ''} onClick={() => setMode('eirp')}>
             TX Power → EIRP
@@ -441,36 +442,29 @@ export default function EirpCalculator() {
         {mode === 'tx' ? (
           <div className="reverse-grid">
             <div>
-              <label>Target EIRP (dBm)</label>
+              <label>{t("EIRP desejada (dBm)", "Target EIRP (dBm)")}</label>
               <div className="field-with-unit">
                 <input value={values ? formatNumber(values.eirp, 3) : ''} readOnly />
                 <span>dBm</span>
               </div>
             </div>
             <div className="reverse-result">
-              <span>TX Power necessário por cadeia</span>
+              <span>{t("Potência de TX necessária por cadeia", "Required TX power per chain")}</span>
               <strong>{values ? `${formatNumber(values.resultingTx, 3)} dBm` : '—'}</strong>
             </div>
           </div>
         ) : (
           <p className="helper-text">
-            O cálculo considera que o TX Power informado é por cadeia de transmissão e que todas as
-            cadeias transmitem com a mesma potência. Os limites de potência conduzida da ANATEL valem
-            para a soma de todas as cadeias (item 10.3.4 do Ato nº 14448).
+            {t("O cálculo considera que a potência de TX informada é por cadeia de transmissão e que todas as cadeias transmitem com a mesma potência. Os limites de potência conduzida da ANATEL valem para a soma de todas as cadeias (item 10.3.4 do Ato nº 14448).", "The calculation assumes the TX power entered is per transmit chain and that all chains transmit at the same power. ANATEL conducted power limits apply to the sum of all chains (item 10.3.4 of Ato nº 14448).")}
           </p>
         )}
       </section>
 
       <section className="info-panel">
-        <div className="eyebrow"><Info size={14} /> NOTA DE ENGENHARIA</div>
-        <h3>O PASS/FAIL compara os resultados com os limites regulatórios mapeados.</h3>
+        <div className="eyebrow"><Info size={14} /> {t("NOTA DE ENGENHARIA", "ENGINEERING NOTE")}</div>
+        <h3>{t("O PASS/FAIL compara os resultados com os limites regulatórios mapeados.", "PASS/FAIL compares the results with the mapped regulatory limits.")}</h3>
         <p>
-          A verificação regulatória usa o Channel Width, Center Channel e tipo de equipamento
-          selecionados. Potência conduzida, EIRP e PSD são comparados automaticamente. A PSD é
-          estimada supondo potência distribuída de forma uniforme na largura do canal; a medição
-          real usa a largura de 26 dB da emissão. Requisitos como DFS, ambiente indoor,
-          características de antena e condições específicas aparecem como regras complementares
-          e devem ser considerados na análise final.
+          {t("A verificação regulatória usa a largura de canal, o canal central e o tipo de equipamento selecionados. Potência conduzida, EIRP e PSD são comparados automaticamente. A PSD é estimada supondo potência distribuída de forma uniforme na largura do canal; a medição real usa a largura de 26 dB da emissão. Requisitos como DFS, ambiente indoor, características de antena e condições específicas aparecem como regras complementares e devem ser considerados na análise final.", "The regulatory check uses the selected channel width, center channel and device type. Conducted power, EIRP and PSD are compared automatically. PSD is estimated assuming power spread evenly across the channel; real measurements use the 26 dB emission bandwidth. Requirements such as DFS, indoor use, antenna characteristics and specific conditions appear as complementary rules and must be considered in the final analysis.")}
         </p>
       </section>
     </div>
@@ -478,11 +472,12 @@ export default function EirpCalculator() {
 }
 
 function CopyButton({ value }: { value: string }) {
+  const { t } = useI18n()
   return (
     <button
       className="copy-btn"
       onClick={() => value && navigator.clipboard?.writeText(value)}
-      title="Copiar"
+      title={t('Copiar', 'Copy')}
     >
       <Copy size={15} />
     </button>
@@ -502,14 +497,15 @@ function ComplianceMetric({
   margin?: number
   pass: boolean
 }) {
+  const { t } = useI18n()
   return (
     <div className={`compliance-card ${pass ? 'ok' : 'bad'}`}>
       <span>{title}</span>
       <strong>{current}</strong>
-      <small>Limite: {limit}</small>
+      <small>{t('Limite', 'Limit')}: {limit}</small>
       {margin !== undefined && (
         <em>
-          Margem: {margin >= 0 ? '+' : ''}{formatNumber(margin, 2)} dB
+          {t('Margem', 'Margin')}: {margin >= 0 ? '+' : ''}{formatNumber(margin, 2)} dB
         </em>
       )}
     </div>

@@ -23,8 +23,16 @@ import {
   type SensitivityEntry,
   type SensitivityProfile,
 } from '../../data/wifiSensitivity'
+import { useI18n } from '../../i18n'
 
 export default function LinkBudget() {
+  const { t, tl } = useI18n()
+  const statusLabel: Record<string, string> = {
+    EXCELLENT: t("EXCELENTE", "EXCELLENT"),
+    GOOD: t("BOM", "GOOD"),
+    MARGINAL: t("MARGINAL", "MARGINAL"),
+    FAIL: t("FALHA", "FAIL"),
+  }
   const [frequencyGHz, setFrequencyGHz] = useState('5.8')
   const [distanceKm, setDistanceKm] = useState('5')
 
@@ -110,7 +118,7 @@ export default function LinkBudget() {
         name: customProfileName || 'Custom',
         generation: wifiGeneration,
         base20MHz: customSensitivity,
-        description: 'Perfil de sensitivity personalizado pelo usuário.',
+        description: { pt: 'Perfil de sensibilidade personalizado pelo usuário.', en: 'User-defined sensitivity profile.' },
       }
     }
 
@@ -204,26 +212,26 @@ export default function LinkBudget() {
     <div>
       <div className="page-title">
         <div>
-          <div className="eyebrow"><RadioTower size={14}/> RF / LINK</div>
-          <h1>Link Budget Calculator</h1>
-          <p>Calcule FSPL, potência recebida, Link Margin e Fresnel Zone para um enlace RF.</p>
+          <div className="eyebrow"><RadioTower size={14}/> {t("RF / ENLACE", "RF / LINK")}</div>
+          <h1>{t("Calculadora de Link Budget", "Link Budget Calculator")}</h1>
+          <p>{t("Calcule FSPL, potência recebida, margem do enlace e zona de Fresnel para um enlace de RF.", "Calculate FSPL, received power, link margin and Fresnel zone for an RF link.")}</p>
         </div>
         <button className="ghost-btn" onClick={reset}>
-          <RotateCcw size={15}/> Redefinir
+          <RotateCcw size={15}/> {t("Redefinir", "Reset")}
         </button>
       </div>
 
       <section className="panel link-general-panel">
-        <div className="panel-title">Parâmetros do enlace</div>
+        <div className="panel-title">{t("Parâmetros do enlace", "Link parameters")}</div>
         <div className="link-general-grid">
           <Field
-            label="Frequency"
+            label={t("Frequência", "Frequency")}
             value={frequencyGHz}
             setValue={setFrequencyGHz}
             unit="GHz"
           />
           <Field
-            label="Distance"
+            label={t("Distância", "Distance")}
             value={distanceKm}
             setValue={setDistanceKm}
             unit="km"
@@ -233,10 +241,10 @@ export default function LinkBudget() {
 
       <div className="link-budget-grid">
         <section className="panel">
-          <div className="panel-title">TX Side</div>
-          <Field label="TX Power" value={txPowerDbm} setValue={setTxPowerDbm} unit="dBm" />
-          <Field label="TX Antenna Gain" value={txGainDbi} setValue={setTxGainDbi} unit="dBi" />
-          <Field label="TX Cable / Path Loss" value={txLossDb} setValue={setTxLossDb} unit="dB" />
+          <div className="panel-title">{t("Lado TX", "TX side")}</div>
+          <Field label={t("Potência de TX", "TX power")} value={txPowerDbm} setValue={setTxPowerDbm} unit="dBm" />
+          <Field label={t("Ganho da antena TX", "TX antenna gain")} value={txGainDbi} setValue={setTxGainDbi} unit="dBi" />
+          <Field label={t("Perda de cabo / caminho TX", "TX cable / path loss")} value={txLossDb} setValue={setTxLossDb} unit="dB" />
 
           <div className="link-summary-card">
             <span>EIRP</span>
@@ -245,7 +253,7 @@ export default function LinkBudget() {
         </section>
 
         <section className="panel path-panel">
-          <div className="panel-title">Path</div>
+          <div className="panel-title">{t("Caminho", "Path")}</div>
 
           <div className="path-hero">
             <Waves size={22}/>
@@ -266,13 +274,13 @@ export default function LinkBudget() {
         </section>
 
         <section className="panel">
-          <div className="panel-title">RX Side</div>
-          <Field label="RX Antenna Gain" value={rxGainDbi} setValue={setRxGainDbi} unit="dBi" />
-          <Field label="RX Cable / Path Loss" value={rxLossDb} setValue={setRxLossDb} unit="dB" />
-          <Field label="Receiver Sensitivity" value={sensitivityDbm} setValue={setSensitivityDbm} unit="dBm" />
+          <div className="panel-title">{t("Lado RX", "RX side")}</div>
+          <Field label={t("Ganho da antena RX", "RX antenna gain")} value={rxGainDbi} setValue={setRxGainDbi} unit="dBi" />
+          <Field label={t("Perda de cabo / caminho RX", "RX cable / path loss")} value={rxLossDb} setValue={setRxLossDb} unit="dB" />
+          <Field label={t("Sensibilidade do receptor", "Receiver sensitivity")} value={sensitivityDbm} setValue={setSensitivityDbm} unit="dBm" />
 
           <div className="link-summary-card">
-            <span>Received Power</span>
+            <span>{t("Potência recebida", "Received power")}</span>
             <strong>{values ? `${formatNumber(values.received, 2)} dBm` : '—'}</strong>
           </div>
         </section>
@@ -284,12 +292,12 @@ export default function LinkBudget() {
             <Signal size={28}/>
           </div>
           <div>
-            <span>Link Status</span>
-            <strong>{values.classification.label}</strong>
-            <p>{values.classification.description}</p>
+            <span>{t("Status do enlace", "Link status")}</span>
+            <strong>{statusLabel[values.classification.label]}</strong>
+            <p>{tl(values.classification.description)}</p>
           </div>
           <div className="link-margin-box">
-            <span>Link Margin</span>
+            <span>{t("Margem do enlace", "Link margin")}</span>
             <strong>
               {values.margin >= 0 ? '+' : ''}
               {formatNumber(values.margin, 2)} dB
@@ -299,11 +307,11 @@ export default function LinkBudget() {
       )}
 
       <section className="panel link-wifi-panel">
-        <div className="panel-title">Estimativa de MCS / PHY Rate</div>
+        <div className="panel-title">{t("Estimativa de MCS / PHY Rate", "MCS / PHY rate estimate")}</div>
 
         <div className="link-wifi-controls">
           <div>
-            <label>Wi-Fi Generation</label>
+            <label>{t("Geração Wi-Fi", "Wi-Fi generation")}</label>
             <select value={wifiGeneration} onChange={(e) => {
               const next = e.target.value as WifiGeneration
               setWifiGeneration(next)
@@ -322,7 +330,7 @@ export default function LinkBudget() {
           </div>
 
           <div>
-            <label>Channel Width</label>
+            <label>{t("Largura de canal", "Channel width")}</label>
             <select value={wifiWidth} onChange={(e) => setWifiWidth(Number(e.target.value))}>
               {WIDTHS[wifiGeneration].map(width => (
                 <option key={width} value={width}>{width} MHz</option>
@@ -347,7 +355,7 @@ export default function LinkBudget() {
           </div>
 
           <div>
-            <label>Margem mínima por MCS</label>
+            <label>{t("Margem mínima por MCS", "Minimum margin per MCS")}</label>
             <select value={targetMcsMargin} onChange={(e) => setTargetMcsMargin(Number(e.target.value))}>
               {[0,3,6,10].map(m => <option key={m} value={m}>{m} dB</option>)}
             </select>
@@ -357,7 +365,7 @@ export default function LinkBudget() {
         <div className="sensitivity-profile-panel">
           <div className="sensitivity-profile-head">
             <div>
-              <span>Receiver Sensitivity Profile</span>
+              <span>{t("Perfil de sensibilidade do receptor", "Receiver sensitivity profile")}</span>
               <strong>{activeSensitivityProfile.name}</strong>
             </div>
             <div className="sensitivity-mode-tabs">
@@ -365,7 +373,7 @@ export default function LinkBudget() {
                 className={sensitivityMode === 'GENERIC' ? 'selected' : ''}
                 onClick={() => setSensitivityMode('GENERIC')}
               >
-                Generic
+                {t("Genérico", "Generic")}
               </button>
               <button
                 className={sensitivityMode === 'CUSTOM' ? 'selected' : ''}
@@ -375,7 +383,7 @@ export default function LinkBudget() {
                   if (base) setCustomSensitivity(base.base20MHz.map(x => ({ ...x })))
                 }}
               >
-                Custom
+                {t("Personalizado", "Custom")}
               </button>
             </div>
           </div>
@@ -383,7 +391,7 @@ export default function LinkBudget() {
           {sensitivityMode === 'CUSTOM' && (
             <>
               <div className="custom-profile-name">
-                <label>Nome do equipamento / perfil</label>
+                <label>{t("Nome do equipamento / perfil", "Device / profile name")}</label>
                 <input
                   value={customProfileName}
                   onChange={(e) => setCustomProfileName(e.target.value)}
@@ -414,8 +422,7 @@ export default function LinkBudget() {
               </div>
 
               <p className="custom-profile-note">
-                Valores informados como sensitivity de referência em 20 MHz. O RFTools aplica
-                automaticamente o ajuste por Channel Width.
+                {t("Valores informados como sensibilidade de referência em 20 MHz. O RFTools aplica automaticamente o ajuste pela largura de canal.", "Values are reference sensitivity at 20 MHz. RFTools adjusts them automatically for the channel width.")}
               </p>
             </>
           )}
@@ -425,7 +432,7 @@ export default function LinkBudget() {
           <>
             <div className="wifi-estimate-hero">
               <div>
-                <span>MCS estimado</span>
+                <span>{t("MCS estimado", "Estimated MCS")}</span>
                 <strong>MCS {wifiEstimate.mcs}</strong>
                 <small>{wifiEstimate.modulation} · {wifiEstimate.codingRate}</small>
               </div>
@@ -435,10 +442,10 @@ export default function LinkBudget() {
                 <small>Throughput ~{formatNumber(wifiEstimate.throughput65, 1)} Mbps @ 65%</small>
               </div>
               <div>
-                <span>Margem nesse MCS</span>
+                <span>{t("Margem nesse MCS", "Margin at this MCS")}</span>
                 <strong>+{formatNumber(wifiEstimate.marginDb, 1)} dB</strong>
                 <small>
-                  Sensibilidade estimada: {formatNumber(wifiEstimate.sensitivityDbm, 1)} dBm
+                  {t("Sensibilidade estimada", "Estimated sensitivity")}: {formatNumber(wifiEstimate.sensitivityDbm, 1)} dBm
                   · {activeSensitivityProfile.name}
                 </small>
               </div>
@@ -449,9 +456,9 @@ export default function LinkBudget() {
                 <thead>
                   <tr>
                     <th>MCS</th>
-                    <th>Modulation</th>
-                    <th>Sensitivity</th>
-                    <th>Margin</th>
+                    <th>{t("Modulação", "Modulation")}</th>
+                    <th>{t("Sensibilidade", "Sensitivity")}</th>
+                    <th>{t("Margem", "Margin")}</th>
                     <th>PHY Rate</th>
                     <th>Status</th>
                   </tr>
@@ -464,7 +471,7 @@ export default function LinkBudget() {
                       <td>{formatNumber(row.sensitivityDbm, 1)} dBm</td>
                       <td>{row.margin >= 0 ? '+' : ''}{formatNumber(row.margin, 1)} dB</td>
                       <td>{formatNumber(row.rate, 1)} Mbps</td>
-                      <td>{row.supported ? 'OK' : 'NO'}</td>
+                      <td>{row.supported ? 'OK' : t("NÃO", "NO")}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -473,13 +480,13 @@ export default function LinkBudget() {
           </>
         ) : (
           <div className="wifi-estimate-fail">
-            A potência recebida está abaixo da sensibilidade estimada necessária para o MCS mínimo com a margem selecionada.
+            {t("A potência recebida está abaixo da sensibilidade estimada necessária para o MCS mínimo com a margem selecionada.", "Received power is below the estimated sensitivity needed for the lowest MCS with the selected margin.")}
           </div>
         )}
       </section>
 
       <section className="panel fresnel-panel">
-        <div className="panel-title"><Activity size={13}/> Fresnel Zone</div>
+        <div className="panel-title"><Activity size={13}/> {t("Zona de Fresnel", "Fresnel zone")}</div>
 
         <div className="fresnel-grid">
           <div className="fresnel-visual">
@@ -491,11 +498,11 @@ export default function LinkBudget() {
 
           <div className="fresnel-metrics">
             <Metric
-              label="F1 no ponto médio"
+              label={t("F1 no ponto médio", "F1 at midpoint")}
               value={values ? `${formatNumber(values.fresnel, 2)} m` : '—'}
             />
             <Metric
-              label="Clearance recomendado (60%)"
+              label={t("Desobstrução recomendada (60%)", "Recommended clearance (60%)")}
               value={values ? `${formatNumber(values.fresnel60, 2)} m` : '—'}
             />
           </div>
@@ -503,12 +510,10 @@ export default function LinkBudget() {
       </section>
 
       <section className="info-panel">
-        <div className="eyebrow"><Info size={14}/> NOTA DE ENGENHARIA</div>
-        <h3>FSPL representa apenas a perda ideal em espaço livre.</h3>
+        <div className="eyebrow"><Info size={14}/> {t("NOTA DE ENGENHARIA", "ENGINEERING NOTE")}</div>
+        <h3>{t("FSPL representa apenas a perda ideal em espaço livre.", "FSPL is only the ideal free-space loss.")}</h3>
         <p>
-          Obstáculos, vegetação, chuva, multipath, desalinhamento de antenas, interferência
-          e obstrução da Fresnel Zone podem aumentar significativamente a perda real do enlace.
-          A Link Margin deve ser interpretada como margem teórica antes dessas perdas adicionais.
+          {t("Obstáculos, vegetação, chuva, multipath, desalinhamento de antenas, interferência e obstrução da zona de Fresnel podem aumentar significativamente a perda real do enlace. A margem do enlace deve ser interpretada como margem teórica antes dessas perdas adicionais.", "Obstacles, vegetation, rain, multipath, antenna misalignment, interference and Fresnel zone obstruction can significantly increase real link loss. Read the link margin as a theoretical margin before those extra losses.")}
         </p>
       </section>
     </div>

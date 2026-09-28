@@ -1,3 +1,5 @@
+import { getCurrentLang } from '../i18n'
+
 export function dbmToMw(dbm: number): number {
   return Math.pow(10, dbm / 10)
 }
@@ -51,7 +53,7 @@ export function calculateTxPowerFromEirp(
 
 export function formatNumber(value: number, digits = 3): string {
   if (!Number.isFinite(value)) return '—'
-  return new Intl.NumberFormat('pt-BR', {
+  return new Intl.NumberFormat(getCurrentLang() === 'pt' ? 'pt-BR' : 'en-US', {
     maximumFractionDigits: digits,
   }).format(value)
 }
