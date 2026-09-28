@@ -17,12 +17,20 @@ import {
 } from '../../calculations/wifiPlanner'
 import { formatNumber } from '../../calculations/rf'
 import {
+  MATERIAL_CATEGORY_LABELS,
   MATERIAL_LOSSES,
   frequencyToLossBand,
   totalMaterialLossDb,
 } from '../../data/materialLosses'
+import { useI18n } from '../../i18n'
 
 export default function WifiNetworkPlanner() {
+  const { t, tl } = useI18n()
+  const bottleneckLabel: Record<string, string> = {
+    CAPACITY: t("CAPACIDADE", "CAPACITY"),
+    COVERAGE: t("COBERTURA", "COVERAGE"),
+    BALANCED: t("EQUILIBRADO", "BALANCED"),
+  }
   const [environment, setEnvironment] = useState<EnvironmentType>('OFFICE')
   const [areaM2, setAreaM2] = useState(2000)
   const [users, setUsers] = useState(180)
@@ -158,49 +166,48 @@ export default function WifiNetworkPlanner() {
     <div>
       <div className="page-title">
         <div>
-          <div className="eyebrow"><LayoutGrid size={14}/> WI-FI / PLANNING</div>
-          <h1>Wi-Fi Network Planner</h1>
+          <div className="eyebrow"><LayoutGrid size={14}/> {t("WI-FI / PLANEJAMENTO", "WI-FI / PLANNING")}</div>
+          <h1>{t("Planejador de Rede Wi-Fi", "Wi-Fi Network Planner")}</h1>
           <p>
-            Estime a quantidade de APs necessária por capacidade e cobertura,
-            considerando usuários, demanda, concorrência e reutilização de canais.
+            {t("Estime a quantidade de APs necessária por capacidade e cobertura, considerando usuários, demanda, concorrência e reutilização de canais.", "Estimate how many APs you need by capacity and coverage, considering users, demand, concurrency and channel reuse.")}
           </p>
         </div>
         <button className="ghost-btn" onClick={reset}>
-          <RotateCcw size={15}/> Redefinir
+          <RotateCcw size={15}/> {t("Redefinir", "Reset")}
         </button>
       </div>
 
       <div className="planner-input-grid">
         <section className="panel">
-          <div className="panel-title">Ambiente e usuários</div>
+          <div className="panel-title">{t("Ambiente e usuários", "Environment and users")}</div>
 
-          <Field label="Tipo de ambiente">
+          <Field label={t("Tipo de ambiente", "Environment type")}>
             <select
               value={environment}
               onChange={e => changeEnvironment(e.target.value as EnvironmentType)}
             >
-              <option value="OPEN">Área aberta</option>
-              <option value="OFFICE">Escritório</option>
-              <option value="DENSE_OFFICE">Escritório denso</option>
-              <option value="WAREHOUSE">Galpão / Warehouse</option>
+              <option value="OPEN">{t("Área aberta", "Open area")}</option>
+              <option value="OFFICE">{t("Escritório", "Office")}</option>
+              <option value="DENSE_OFFICE">{t("Escritório denso", "Dense office")}</option>
+              <option value="WAREHOUSE">{t("Galpão", "Warehouse")}</option>
             </select>
           </Field>
 
           <NumberField
-            label="Área total"
+            label={t("Área total", "Total area")}
             value={areaM2}
             onChange={setAreaM2}
             unit="m²"
           />
           <NumberField
-            label="Usuários"
+            label={t("Usuários", "Users")}
             value={users}
             onChange={setUsers}
             unit=""
           />
 
           <Slider
-            label="Concorrência média"
+            label={t("Concorrência média", "Average concurrency")}
             value={concurrency}
             min={5}
             max={100}
@@ -209,7 +216,7 @@ export default function WifiNetworkPlanner() {
           />
 
           <NumberField
-            label="Demanda por usuário ativo"
+            label={t("Demanda por usuário ativo", "Demand per active user")}
             value={demandPerUser}
             onChange={setDemandPerUser}
             unit="Mbps"
@@ -217,17 +224,17 @@ export default function WifiNetworkPlanner() {
         </section>
 
         <section className="panel">
-          <div className="panel-title">Capacidade do AP</div>
+          <div className="panel-title">{t("Capacidade do AP", "AP capacity")}</div>
 
           <NumberField
-            label="Capacidade útil por AP"
+            label={t("Capacidade útil por AP", "Usable capacity per AP")}
             value={capacityPerAp}
             onChange={setCapacityPerAp}
             unit="Mbps"
           />
 
           <div className="coverage-mode-block">
-            <label>Modelo de cobertura</label>
+            <label>{t("Modelo de cobertura", "Coverage model")}</label>
             <div className="capacity-mode-tabs">
               <button
                 className={coverageMode === 'MANUAL' ? 'selected' : ''}
@@ -246,7 +253,7 @@ export default function WifiNetworkPlanner() {
 
           {coverageMode === 'MANUAL' ? (
             <NumberField
-              label="Raio de cobertura estimado"
+              label={t("Raio de cobertura estimado", "Estimated coverage radius")}
               value={coverageRadius}
               onChange={setCoverageRadius}
               unit="m"
@@ -254,35 +261,35 @@ export default function WifiNetworkPlanner() {
           ) : (
             <div className="rf-coverage-config">
               <div className="planner-field">
-                <label>Coverage Model</label>
+                <label>{t("Modelo de propagação", "Propagation model")}</label>
                 <select
                   value={coverageModel}
                   onChange={e => setCoverageModel(e.target.value as CoverageModel)}
                 >
-                  <option value="FREE_SPACE">Free Space</option>
+                  <option value="FREE_SPACE">{t("Espaço livre", "Free space")}</option>
                   <option value="LOG_DISTANCE">Log-Distance</option>
                 </select>
               </div>
 
               <div className="rf-coverage-grid">
-                <NumberField label="Frequency" value={frequencyGHz} onChange={setFrequencyGHz} unit="GHz" />
-                <NumberField label="TX Power" value={txPowerDbm} onChange={setTxPowerDbm} unit="dBm" />
-                <NumberField label="AP Antenna Gain" value={txAntennaGainDbi} onChange={setTxAntennaGainDbi} unit="dBi" />
-                <NumberField label="TX Loss" value={txLossDb} onChange={setTxLossDb} unit="dB" />
-                <NumberField label="Client Antenna Gain" value={clientAntennaGainDbi} onChange={setClientAntennaGainDbi} unit="dBi" />
-                <NumberField label="Target RSSI" value={targetRssiDbm} onChange={setTargetRssiDbm} unit="dBm" />
-                <NumberField label="Fade Margin" value={fadeMarginDb} onChange={setFadeMarginDb} unit="dB" />
-                <NumberField label="Extra Loss manual" value={manualExtraLossDb} onChange={setManualExtraLossDb} unit="dB" />
+                <NumberField label={t("Frequência", "Frequency")} value={frequencyGHz} onChange={setFrequencyGHz} unit="GHz" />
+                <NumberField label={t("Potência de TX", "TX power")} value={txPowerDbm} onChange={setTxPowerDbm} unit="dBm" />
+                <NumberField label={t("Ganho da antena do AP", "AP antenna gain")} value={txAntennaGainDbi} onChange={setTxAntennaGainDbi} unit="dBi" />
+                <NumberField label={t("Perda TX", "TX loss")} value={txLossDb} onChange={setTxLossDb} unit="dB" />
+                <NumberField label={t("Ganho da antena do cliente", "Client antenna gain")} value={clientAntennaGainDbi} onChange={setClientAntennaGainDbi} unit="dBi" />
+                <NumberField label={t("RSSI alvo", "Target RSSI")} value={targetRssiDbm} onChange={setTargetRssiDbm} unit="dBm" />
+                <NumberField label={t("Margem de desvanecimento", "Fade margin")} value={fadeMarginDb} onChange={setFadeMarginDb} unit="dB" />
+                <NumberField label={t("Perda extra manual", "Manual extra loss")} value={manualExtraLossDb} onChange={setManualExtraLossDb} unit="dB" />
                 {coverageModel === 'LOG_DISTANCE' && (
-                  <NumberField label="Path Loss Exponent" value={pathLossExponent} onChange={setPathLossExponent} unit="n" />
+                  <NumberField label={t("Expoente de perda", "Path loss exponent")} value={pathLossExponent} onChange={setPathLossExponent} unit="n" />
                 )}
               </div>
 
               <div className="material-loss-builder">
                 <div className="material-loss-head">
                   <div>
-                    <span>Obstáculos / materiais</span>
-                    <strong>Perfil de atenuação · {lossBand}</strong>
+                    <span>{t("Obstáculos / materiais", "Obstacles / materials")}</span>
+                    <strong>{t("Perfil de atenuação", "Attenuation profile")} · {lossBand}</strong>
                   </div>
                   <b>{formatNumber(materialLossDb, 1)} dB</b>
                 </div>
@@ -298,8 +305,8 @@ export default function WifiNetworkPlanner() {
                         className={`material-loss-item ${quantity > 0 ? 'active' : ''}`}
                       >
                         <div>
-                          <strong>{material.name}</strong>
-                          <span>{material.category} · {formatNumber(perUnit, 1)} dB/un.</span>
+                          <strong>{tl(material.name)}</strong>
+                          <span>{tl(MATERIAL_CATEGORY_LABELS[material.category])} · {formatNumber(perUnit, 1)} dB/{t('un.', 'unit')}</span>
                         </div>
 
                         <div className="material-qty-control">
@@ -350,17 +357,17 @@ export default function WifiNetworkPlanner() {
 
                 <div className="material-loss-summary">
                   <div>
-                    <span>Materiais</span>
+                    <span>{t("Materiais", "Materials")}</span>
                     <strong>{formatNumber(materialLossDb, 1)} dB</strong>
                   </div>
                   <b>+</b>
                   <div>
-                    <span>Extra manual</span>
+                    <span>{t("Extra manual", "Manual extra")}</span>
                     <strong>{formatNumber(manualExtraLossDb, 1)} dB</strong>
                   </div>
                   <b>=</b>
                   <div className="highlight">
-                    <span>Additional Loss</span>
+                    <span>{t("Perda adicional", "Additional loss")}</span>
                     <strong>{formatNumber(totalAdditionalLossDb, 1)} dB</strong>
                   </div>
                 </div>
@@ -372,15 +379,15 @@ export default function WifiNetworkPlanner() {
                   <strong>{formatNumber(rfCoverage.eirpDbm, 1)} dBm</strong>
                 </div>
                 <div>
-                  <span>Max Path Loss</span>
+                  <span>{t("Perda de caminho máx.", "Max path loss")}</span>
                   <strong>{formatNumber(rfCoverage.maxPathLossDb, 1)} dB</strong>
                 </div>
                 <div>
-                  <span>Additional Loss</span>
+                  <span>{t("Perda adicional", "Additional loss")}</span>
                   <strong>{formatNumber(totalAdditionalLossDb, 1)} dB</strong>
                 </div>
                 <div className="highlight">
-                  <span>Raio RF estimado</span>
+                  <span>{t("Raio RF estimado", "Estimated RF radius")}</span>
                   <strong>{formatNumber(rfCoverage.radiusMeters, 1)} m</strong>
                 </div>
               </div>
@@ -388,7 +395,7 @@ export default function WifiNetworkPlanner() {
           )}
 
           <Slider
-            label="Overlap planejado"
+            label={t("Sobreposição planejada", "Planned overlap")}
             value={overlapPercent}
             min={0}
             max={50}
@@ -397,16 +404,16 @@ export default function WifiNetworkPlanner() {
           />
 
           <div className="planner-select-field">
-            <label>Channel Reuse Factor</label>
+            <label>{t("Fator de reuso de canal", "Channel reuse factor")}</label>
             <select
               value={channelReuseFactor}
               onChange={e => setChannelReuseFactor(Number(e.target.value))}
             >
               <option value={1}>1.00 · ideal</option>
-              <option value={1.15}>1.15 · baixo impacto</option>
-              <option value={1.25}>1.25 · moderado</option>
-              <option value={1.5}>1.50 · alto</option>
-              <option value={2}>2.00 · muito alto</option>
+              <option value={1.15}>1.15 · {t("baixo impacto", "low impact")}</option>
+              <option value={1.25}>1.25 · {t("moderado", "moderate")}</option>
+              <option value={1.5}>1.50 · {t("alto", "high")}</option>
+              <option value={2}>2.00 · {t("muito alto", "very high")}</option>
             </select>
           </div>
         </section>
@@ -414,22 +421,22 @@ export default function WifiNetworkPlanner() {
 
       <section className="panel planner-hero">
         <div>
-          <span>APs recomendados</span>
+          <span>{t("APs recomendados", "Recommended APs")}</span>
           <strong>{result.recommendedAps}</strong>
           <small>
-            Maior valor entre capacidade ({result.apsByCapacity}) e cobertura ({result.apsByCoverage})
+            {t(`Maior valor entre capacidade (${result.apsByCapacity}) e cobertura (${result.apsByCoverage})`, `Larger of capacity (${result.apsByCapacity}) and coverage (${result.apsByCoverage})`)}
           </small>
         </div>
 
         <div className={`planner-bottleneck ${bottleneck.toLowerCase()}`}>
-          <span>Limitante principal</span>
-          <strong>{bottleneck}</strong>
+          <span>{t("Limitante principal", "Main constraint")}</span>
+          <strong>{bottleneckLabel[bottleneck]}</strong>
           <small>
             {bottleneck === 'CAPACITY'
-              ? 'A densidade/demanda exige mais APs do que a cobertura.'
+              ? t("A densidade/demanda exige mais APs do que a cobertura.", "Density/demand needs more APs than coverage.")
               : bottleneck === 'COVERAGE'
-                ? 'A área física exige mais APs do que a demanda.'
-                : 'Capacidade e cobertura estão próximas.'}
+                ? t("A área física exige mais APs do que a demanda.", "The physical area needs more APs than demand.")
+                : t("Capacidade e cobertura estão próximas.", "Capacity and coverage are about even.")}
           </small>
         </div>
       </section>
@@ -437,45 +444,45 @@ export default function WifiNetworkPlanner() {
       <div className="planner-metrics">
         <Metric
           icon={<Users size={18}/>}
-          label="Usuários simultâneos"
+          label={t("Usuários simultâneos", "Concurrent users")}
           value={formatNumber(result.concurrentUsers, 1)}
-          note={`${concurrency}% de ${users} usuários`}
+          note={t(`${concurrency}% de ${users} usuários`, `${concurrency}% of ${users} users`)}
         />
         <Metric
           icon={<Gauge size={18}/>}
-          label="Demanda total"
+          label={t("Demanda total", "Total demand")}
           value={`${formatNumber(result.totalDemandMbps, 1)} Mbps`}
-          note={`${demandPerUser} Mbps por usuário ativo`}
+          note={t(`${demandPerUser} Mbps por usuário ativo`, `${demandPerUser} Mbps per active user`)}
         />
         <Metric
           icon={<Wifi size={18}/>}
-          label="Capacidade efetiva por AP"
+          label={t("Capacidade efetiva por AP", "Effective capacity per AP")}
           value={`${formatNumber(result.capacityPerApMbps, 1)} Mbps`}
-          note={`Após Channel Reuse Factor ${channelReuseFactor}`}
+          note={t(`Após fator de reuso ${channelReuseFactor}`, `After channel reuse factor ${channelReuseFactor}`)}
         />
         <Metric
           icon={<Building2 size={18}/>}
-          label="Cobertura estimada por AP"
+          label={t("Cobertura estimada por AP", "Estimated coverage per AP")}
           value={`${formatNumber(result.estimatedCoveragePerApM2, 0)} m²`}
-          note={`Raio ${formatNumber(effectiveCoverageRadius, 1)} m com ${overlapPercent}% overlap`}
+          note={t(`Raio ${formatNumber(effectiveCoverageRadius, 1)} m com ${overlapPercent}% de sobreposição`, `${formatNumber(effectiveCoverageRadius, 1)} m radius with ${overlapPercent}% overlap`)}
         />
       </div>
 
       <section className="panel planner-comparison-panel">
-        <div className="panel-title">Capacity vs Coverage</div>
+        <div className="panel-title">{t("Capacidade vs. cobertura", "Capacity vs coverage")}</div>
 
         <div className="planner-comparison-grid">
           <div className="planner-comparison-card">
-            <span>Dimensionamento por capacidade</span>
+            <span>{t("Dimensionamento por capacidade", "Sizing by capacity")}</span>
             <strong>{result.apsByCapacity} APs</strong>
             <p>
-              {formatNumber(result.totalDemandMbps, 1)} Mbps de demanda ÷{' '}
+              {formatNumber(result.totalDemandMbps, 1)} Mbps {t("de demanda", "of demand")} ÷{' '}
               {formatNumber(result.capacityPerApMbps, 1)} Mbps/AP
             </p>
           </div>
 
           <div className="planner-comparison-card">
-            <span>Dimensionamento por cobertura</span>
+            <span>{t("Dimensionamento por cobertura", "Sizing by coverage")}</span>
             <strong>{result.apsByCoverage} APs</strong>
             <p>
               {formatNumber(areaM2, 0)} m² ÷{' '}
@@ -484,22 +491,24 @@ export default function WifiNetworkPlanner() {
           </div>
 
           <div className="planner-comparison-card highlight">
-            <span>Projeto recomendado</span>
+            <span>{t("Projeto recomendado", "Recommended design")}</span>
             <strong>{result.recommendedAps} APs</strong>
             <p>
-              Aproximadamente {formatNumber(result.usersPerAp, 1)} usuários associados
-              e {formatNumber(result.demandPerApMbps, 1)} Mbps de demanda por AP.
+              {t(
+                `Aproximadamente ${formatNumber(result.usersPerAp, 1)} usuários associados e ${formatNumber(result.demandPerApMbps, 1)} Mbps de demanda por AP.`,
+                `About ${formatNumber(result.usersPerAp, 1)} associated users and ${formatNumber(result.demandPerApMbps, 1)} Mbps of demand per AP.`,
+              )}
             </p>
           </div>
         </div>
       </section>
 
       <section className="panel planner-utilization-panel">
-        <div className="panel-title">Utilização estimada</div>
+        <div className="panel-title">{t("Utilização estimada", "Estimated utilization")}</div>
 
         <div className="planner-utilization-row">
           <div>
-            <span>Utilização média por AP</span>
+            <span>{t("Utilização média por AP", "Average utilization per AP")}</span>
             <strong>{formatNumber(result.utilizationPercent, 1)}%</strong>
           </div>
           <div className="planner-utilization-bar">
@@ -513,15 +522,10 @@ export default function WifiNetworkPlanner() {
       </section>
 
       <section className="info-panel">
-        <div className="eyebrow"><Info size={14}/> NOTA DE ENGENHARIA</div>
-        <h3>Este é um dimensionamento inicial por capacidade e cobertura.</h3>
+        <div className="eyebrow"><Info size={14}/> {t("NOTA DE ENGENHARIA", "ENGINEERING NOTE")}</div>
+        <h3>{t("Este é um dimensionamento inicial por capacidade e cobertura.", "This is an initial sizing by capacity and coverage.")}</h3>
         <p>
-          No modo Link Budget, o raio é estimado por RF usando Free Space ou Log-Distance,
-          target RSSI, margem e perdas adicionais. O cálculo não substitui site survey nem
-          predictive RF planning. Paredes, materiais, alturas, potência, antenas, CCI/ACI,
-          roaming, quantidade de canais,
-          bandas utilizadas e requisitos mínimos de RSSI/SNR podem alterar bastante
-          a quantidade e o posicionamento final dos APs.
+          {t("No modo Link Budget, o raio é estimado por RF usando espaço livre ou Log-Distance, RSSI alvo, margem e perdas adicionais. O cálculo não substitui site survey nem planejamento preditivo de RF. Paredes, materiais, alturas, potência, antenas, CCI/ACI, roaming, quantidade de canais, bandas utilizadas e requisitos mínimos de RSSI/SNR podem alterar bastante a quantidade e o posicionamento final dos APs.", "In Link Budget mode, the radius is estimated from RF using free space or log-distance, target RSSI, margin and extra losses. It does not replace a site survey or predictive RF planning. Walls, materials, heights, power, antennas, CCI/ACI, roaming, number of channels, bands in use and minimum RSSI/SNR requirements can change the final number and placement of APs a lot.")}
         </p>
       </section>
     </div>

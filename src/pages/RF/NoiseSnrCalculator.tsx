@@ -17,11 +17,13 @@ import {
   requiredSnrForMcs,
 } from '../../data/wifiSnr'
 import { formatNumber } from '../../calculations/rf'
+import { useI18n } from '../../i18n'
 
 const ABSOLUTE_ZERO_C = 273.15
 const DEFAULT_TEMPERATURE_C = '16.85'
 
 export default function NoiseSnrCalculator() {
+  const { t } = useI18n()
   const [generation, setGeneration] = useState<WifiGeneration>('Wi-Fi 6')
   const [widthMHz, setWidthMHz] = useState(80)
   const [noiseFigureDb, setNoiseFigureDb] = useState(7)
@@ -103,23 +105,25 @@ export default function NoiseSnrCalculator() {
     <div>
       <div className="page-title">
         <div>
-          <div className="eyebrow"><Signal size={14}/> RF / NOISE</div>
-          <h1>Noise Floor / SNR Calculator</h1>
+          <div className="eyebrow"><Signal size={14}/> {t('RF / RUÍDO', 'RF / NOISE')}</div>
+          <h1>{t('Calculadora de Piso de Ruído / SNR', 'Noise Floor / SNR Calculator')}</h1>
           <p>
-            Calcule Thermal Noise, Receiver Noise Floor, SNR e receiver sensitivity
-            estimada por MCS.
+            {t(
+              'Calcule ruído térmico, piso de ruído do receptor, SNR e sensibilidade estimada do receptor por MCS.',
+              'Calculate thermal noise, receiver noise floor, SNR and estimated receiver sensitivity per MCS.',
+            )}
           </p>
         </div>
         <button className="ghost-btn" onClick={reset}>
-          <RotateCcw size={15}/> Redefinir
+          <RotateCcw size={15}/> {t('Redefinir', 'Reset')}
         </button>
       </div>
 
       <section className="panel noise-input-panel">
-        <div className="panel-title">Parâmetros</div>
+        <div className="panel-title">{t('Parâmetros', 'Parameters')}</div>
 
         <div className="noise-input-grid">
-          <Field label="Wi-Fi Generation">
+          <Field label={t('Geração Wi-Fi', 'Wi-Fi Generation')}>
             <select
               value={generation}
               onChange={e => changeGeneration(e.target.value as WifiGeneration)}
@@ -130,7 +134,7 @@ export default function NoiseSnrCalculator() {
             </select>
           </Field>
 
-          <Field label="Channel Width">
+          <Field label={t('Largura de canal', 'Channel Width')}>
             <select
               value={widthMHz}
               onChange={e => setWidthMHz(Number(e.target.value))}
@@ -155,14 +159,14 @@ export default function NoiseSnrCalculator() {
           </Field>
 
           <NumberField
-            label="Noise Figure"
+            label={t('Figura de ruído', 'Noise Figure')}
             value={noiseFigureDb}
             onChange={setNoiseFigureDb}
             unit="dB"
           />
 
           <SignedNumberField
-            label="Signal Level"
+            label={t('Nível de sinal', 'Signal Level')}
             value={signalDbm}
             onChange={setSignalDbm}
             unit="dBm"
@@ -170,7 +174,7 @@ export default function NoiseSnrCalculator() {
           />
 
           <SignedNumberField
-            label="Temperature"
+            label={t('Temperatura', 'Temperature')}
             value={temperatureC}
             onChange={setTemperatureC}
             unit="°C"
@@ -182,40 +186,40 @@ export default function NoiseSnrCalculator() {
 
       {!Number.isFinite(validSignalDbm) && (
         <div className="signal-input-warning">
-          Digite um nível de sinal válido, por exemplo <strong>-58</strong> ou <strong>-67.5 dBm</strong>.
+          {t('Digite um nível de sinal válido, por exemplo', 'Enter a valid signal level, for example')} <strong>-58</strong> {t('ou', 'or')} <strong>-67.5 dBm</strong>.
         </div>
       )}
 
       {!Number.isFinite(temperatureK) && (
         <div className="signal-input-warning">
-          Digite uma temperatura acima de −273,15 °C (zero absoluto), por exemplo <strong>25</strong>.
+          {t('Digite uma temperatura acima de −273,15 °C (zero absoluto), por exemplo', 'Enter a temperature above −273.15 °C (absolute zero), for example')} <strong>25</strong>.
         </div>
       )}
 
       <div className="noise-metrics-grid">
         <Metric
           icon={<Waves size={18}/>}
-          label="Thermal Noise"
+          label={t('Ruído térmico', 'Thermal Noise')}
           value={`${formatNumber(result.thermal, 2)} dBm`}
           note={`${formatNumber(result.density, 2)} dBm/Hz @ ${formatNumber(parsedTemperatureC, 2)} °C (${formatNumber(temperatureK, 2)} K)`}
         />
         <Metric
           icon={<Activity size={18}/>}
-          label="Receiver Noise Floor"
+          label={t('Piso de ruído do receptor', 'Receiver Noise Floor')}
           value={`${formatNumber(result.floor, 2)} dBm`}
-          note={`Inclui Noise Figure de ${noiseFigureDb} dB`}
+          note={t(`Inclui figura de ruído de ${noiseFigureDb} dB`, `Includes a ${noiseFigureDb} dB noise figure`)}
         />
         <Metric
           icon={<Signal size={18}/>}
-          label="SNR atual"
+          label={t('SNR atual', 'Current SNR')}
           value={`${formatNumber(result.snr, 2)} dB`}
           note={`${validSignalDbm ? formatNumber(validSignalDbm, 1) : signalDbm} dBm − ${formatNumber(result.floor, 1)} dBm`}
         />
         <Metric
           icon={<Signal size={18}/>}
-          label={`Sensitivity estimada · MCS ${mcs}`}
+          label={t(`Sensibilidade estimada · MCS ${mcs}`, `Estimated sensitivity · MCS ${mcs}`)}
           value={`${formatNumber(result.sensitivity, 2)} dBm`}
-          note={`Required SNR ≈ ${requiredSnr} dB`}
+          note={t(`SNR necessário ≈ ${requiredSnr} dB`, `Required SNR ≈ ${requiredSnr} dB`)}
         />
       </div>
 
@@ -224,16 +228,16 @@ export default function NoiseSnrCalculator() {
           <Signal size={28}/>
         </div>
         <div>
-          <span>SNR Status</span>
+          <span>{t('Status do SNR', 'SNR Status')}</span>
           <strong>{result.pass ? 'PASS' : 'FAIL'}</strong>
           <p>
             {result.pass
-              ? 'O SNR calculado atende a referência de SNR para o MCS selecionado.'
-              : 'O SNR calculado está abaixo da referência necessária para o MCS selecionado.'}
+              ? t('O SNR calculado atende a referência de SNR para o MCS selecionado.', 'The calculated SNR meets the SNR reference for the selected MCS.')
+              : t('O SNR calculado está abaixo da referência necessária para o MCS selecionado.', 'The calculated SNR is below the reference required for the selected MCS.')}
           </p>
         </div>
         <div className="snr-margin-box">
-          <span>SNR Margin</span>
+          <span>{t('Margem de SNR', 'SNR Margin')}</span>
           <strong>
             {result.margin >= 0 ? '+' : ''}
             {formatNumber(result.margin, 2)} dB
@@ -242,17 +246,17 @@ export default function NoiseSnrCalculator() {
       </section>
 
       <section className="panel snr-table-panel">
-        <div className="panel-title">MCS / SNR Reference · {generation}</div>
+        <div className="panel-title">{t('Referência MCS / SNR', 'MCS / SNR Reference')} · {generation}</div>
 
         <div className="snr-table-wrap">
           <table className="snr-table">
             <thead>
               <tr>
                 <th>MCS</th>
-                <th>Modulation</th>
-                <th>Required SNR</th>
-                <th>Estimated Sensitivity</th>
-                <th>Margin @ Signal</th>
+                <th>{t('Modulação', 'Modulation')}</th>
+                <th>{t('SNR necessário', 'Required SNR')}</th>
+                <th>{t('Sensibilidade estimada', 'Estimated Sensitivity')}</th>
+                <th>{t('Margem @ sinal', 'Margin @ Signal')}</th>
                 <th>Status</th>
               </tr>
             </thead>
@@ -282,7 +286,7 @@ export default function NoiseSnrCalculator() {
                     <td>{snrRef} dB</td>
                     <td>{formatNumber(sensitivity, 1)} dBm</td>
                     <td>{margin >= 0 ? '+' : ''}{formatNumber(margin, 1)} dB</td>
-                    <td>{pass ? 'OK' : 'NO'}</td>
+                    <td>{pass ? 'OK' : t('NÃO', 'NO')}</td>
                   </tr>
                 )
               })}
@@ -292,14 +296,13 @@ export default function NoiseSnrCalculator() {
       </section>
 
       <section className="info-panel">
-        <div className="eyebrow"><Info size={14}/> NOTA DE ENGENHARIA</div>
-        <h3>Noise Floor teórico e SNR real são conceitos diferentes.</h3>
+        <div className="eyebrow"><Info size={14}/> {t('NOTA DE ENGENHARIA', 'ENGINEERING NOTE')}</div>
+        <h3>{t('Piso de ruído teórico e SNR real são conceitos diferentes.', 'Theoretical noise floor and real SNR are different things.')}</h3>
         <p>
-          O Thermal Noise parte de kTB e o Receiver Noise Floor adiciona o Noise Figure
-          do receptor. Em uma WLAN real, interferência co-channel, adjacent-channel,
-          dispositivos não Wi-Fi e ruído impulsivo podem elevar o noise floor muito acima
-          do valor térmico calculado. Os Required SNR por MCS usados aqui são referências
-          práticas aproximadas e podem variar entre chipsets.
+          {t(
+            'O ruído térmico parte de kTB e o piso de ruído do receptor soma a figura de ruído. Em uma WLAN real, interferência co-channel, adjacent-channel, dispositivos não Wi-Fi e ruído impulsivo podem elevar o piso de ruído muito acima do valor térmico calculado. Os SNR necessários por MCS usados aqui são referências práticas aproximadas e podem variar entre chipsets.',
+            'Thermal noise comes from kTB and the receiver noise floor adds the noise figure. In a real WLAN, co-channel and adjacent-channel interference, non-Wi-Fi devices and impulsive noise can raise the noise floor far above the calculated thermal value. The required SNR per MCS used here are approximate practical references and vary between chipsets.',
+          )}
         </p>
       </section>
     </div>

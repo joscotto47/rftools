@@ -1,4 +1,5 @@
 import { CHANNEL_CONFIGS, type ChannelConfig, type ChannelWidth, type WifiBand } from './wifiChannels'
+import { type Localized } from '../i18n'
 
 /**
  * Upper edge of 6 GHz Wi-Fi in Brazil. Ato nº 10400/2026 reduced the band from 5.925–7.125 MHz
@@ -11,8 +12,8 @@ export type RegulatoryProfile = 'IEEE' | 'BR-ANATEL'
 export type RegulatoryResult = {
   allowed: boolean
   status: 'technical' | 'allowed' | 'restricted'
-  label: string
-  note?: string
+  label: Localized
+  note?: Localized
 }
 
 type AllowedMap = Partial<Record<ChannelWidth, number[]>>
@@ -60,6 +61,8 @@ export function getOccupiedRange(config: ChannelConfig) {
   }
 }
 
+const ALLOWED_LABEL: Localized = { pt: 'Permitido no perfil ANATEL', en: 'Allowed in ANATEL profile' }
+
 export function checkRegulatory(
   config: ChannelConfig,
   profile: RegulatoryProfile,
@@ -68,8 +71,8 @@ export function checkRegulatory(
     return {
       allowed: true,
       status: 'technical',
-      label: 'Referência IEEE',
-      note: 'Canalização técnica, sem aplicação de domínio regulatório.',
+      label: { pt: 'Referência IEEE', en: 'IEEE reference' },
+      note: { pt: 'Canalização técnica, sem aplicação de domínio regulatório.', en: 'Technical channelization, no regulatory domain applied.' },
     }
   }
 
@@ -80,10 +83,16 @@ export function checkRegulatory(
     return {
       allowed: false,
       status: 'restricted',
-      label: 'Fora do perfil ANATEL',
+      label: { pt: 'Fora do perfil ANATEL', en: 'Outside ANATEL profile' },
       note: config.band === '6 GHz'
-        ? `O bloco do Center Channel ${config.channel} passa de ${ANATEL_6GHZ_MAX_MHZ} MHz. No Brasil, o Wi-Fi em 6 GHz fica restrito a 5.925–${ANATEL_6GHZ_MAX_MHZ} MHz (Ato nº 10400/2026, obrigatório a partir de 01/03/2027).`
-        : `O Center Channel ${config.channel} não está listado como válido para ${config.width} MHz neste perfil.`,
+        ? {
+            pt: `O bloco do canal central ${config.channel} passa de ${ANATEL_6GHZ_MAX_MHZ} MHz. No Brasil, o Wi-Fi em 6 GHz fica restrito a 5.925–${ANATEL_6GHZ_MAX_MHZ} MHz (Ato nº 10400/2026, obrigatório a partir de 01/03/2027).`,
+            en: `The block of center channel ${config.channel} goes past ${ANATEL_6GHZ_MAX_MHZ} MHz. In Brazil, 6 GHz Wi-Fi is limited to 5,925–${ANATEL_6GHZ_MAX_MHZ} MHz (Ato nº 10400/2026, mandatory from 2027-03-01).`,
+          }
+        : {
+            pt: `O canal central ${config.channel} não está listado como válido para ${config.width} MHz neste perfil.`,
+            en: `Center channel ${config.channel} is not listed as valid for ${config.width} MHz in this profile.`,
+          },
     }
   }
 
@@ -91,8 +100,8 @@ export function checkRegulatory(
     return {
       allowed: true,
       status: 'allowed',
-      label: 'Permitido no perfil ANATEL',
-      note: 'Dentro de 5.925–6.425 MHz (Ato nº 10400/2026). Uso indoor para pontos de acesso e clientes; limites dependem da categoria do equipamento.',
+      label: ALLOWED_LABEL,
+      note: { pt: 'Dentro de 5.925–6.425 MHz (Ato nº 10400/2026). Uso indoor para pontos de acesso e clientes; limites dependem da categoria do equipamento.', en: 'Within 5,925–6,425 MHz (Ato nº 10400/2026). Indoor use for access points and clients; limits depend on the device category.' },
     }
   }
 
@@ -100,15 +109,15 @@ export function checkRegulatory(
     return {
       allowed: true,
       status: 'allowed',
-      label: 'Permitido no perfil ANATEL',
-      note: 'Bloco permitido com DFS. A operação pode exigir CAC e detecção de radar.',
+      label: ALLOWED_LABEL,
+      note: { pt: 'Bloco permitido com DFS. A operação pode exigir CAC e detecção de radar.', en: 'Block allowed with DFS. Operation may require CAC and radar detection.' },
     }
   }
 
   return {
     allowed: true,
     status: 'allowed',
-    label: 'Permitido no perfil ANATEL',
-    note: 'Center Channel válido para a banda e Channel Width selecionados.',
+    label: ALLOWED_LABEL,
+    note: { pt: 'Canal central válido para a banda e a largura de canal selecionadas.', en: 'Center channel valid for the selected band and channel width.' },
   }
 }

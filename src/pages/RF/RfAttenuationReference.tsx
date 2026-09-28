@@ -1,35 +1,57 @@
 import { useMemo, useState } from 'react'
 import { BarChart3, Info, RotateCcw, Search, Waves } from 'lucide-react'
 import {
+  MATERIAL_CATEGORY_LABELS,
   MATERIAL_LOSSES,
+  type MaterialCategory,
   type WifiLossBand,
 } from '../../data/materialLosses'
 import { formatNumber } from '../../calculations/rf'
+import { useI18n } from '../../i18n'
 
 const BANDS: WifiLossBand[] = ['2.4 GHz', '5 GHz', '6 GHz']
+const ALL = 'all'
+
+type Impact = 'very-high' | 'high' | 'moderate' | 'low'
+
+// CSS classes predate the translation and stay in Portuguese.
+const IMPACT_CLASS: Record<Impact, string> = { 'very-high': 'muito-alto', high: 'alto', moderate: 'moderado', low: 'baixo' }
+
+function impactOf(lossDb: number): Impact {
+  if (lossDb >= 20) return 'very-high'
+  if (lossDb >= 10) return 'high'
+  if (lossDb >= 5) return 'moderate'
+  return 'low'
+}
 
 export default function RfAttenuationReference() {
+  const { t, tl } = useI18n()
   const [band, setBand] = useState<WifiLossBand>('5 GHz')
-  const [category, setCategory] = useState('Todos')
+  const [category, setCategory] = useState<MaterialCategory | typeof ALL>(ALL)
   const [query, setQuery] = useState('')
 
+  const impactLabel: Record<Impact, string> = {
+    'very-high': t('Muito alto', 'Very high'),
+    high: t('Alto', 'High'),
+    moderate: t('Moderado', 'Moderate'),
+    low: t('Baixo', 'Low'),
+  }
+
   const categories = useMemo(
-    () => ['Todos', ...Array.from(new Set(MATERIAL_LOSSES.map(item => item.category)))],
+    () => Array.from(new Set(MATERIAL_LOSSES.map(item => item.category))),
     [],
   )
 
-  const filtered = useMemo(
-    () =>
-      MATERIAL_LOSSES.filter(item => {
-        const categoryOk = category === 'Todos' || item.category === category
-        const queryOk =
-          !query.trim() ||
-          item.name.toLowerCase().includes(query.toLowerCase()) ||
-          item.category.toLowerCase().includes(query.toLowerCase())
-        return categoryOk && queryOk
-      }),
-    [category, query],
-  )
+  const filtered = MATERIAL_LOSSES.filter(item => {
+    const categoryOk = category === ALL || item.category === category
+    const q = query.trim().toLowerCase()
+    // Search matches either language, so a term typed in PT still works in EN mode.
+    const queryOk =
+      !q ||
+      [item.name.pt, item.name.en, MATERIAL_CATEGORY_LABELS[item.category].pt, MATERIAL_CATEGORY_LABELS[item.category].en]
+        .some(text => text.toLowerCase().includes(q))
+    return categoryOk && queryOk
+  })
 
   const maxLoss = Math.max(
     1,
@@ -38,7 +60,7 @@ export default function RfAttenuationReference() {
 
   function reset() {
     setBand('5 GHz')
-    setCategory('Todos')
+    setCategory(ALL)
     setQuery('')
   }
 
@@ -46,20 +68,20 @@ export default function RfAttenuationReference() {
     <div>
       <div className="page-title">
         <div>
-          <div className="eyebrow"><Waves size={14}/> RF / REFERENCE</div>
-          <h1>RF Attenuation Reference</h1>
+          <div className="eyebrow"><Waves size={14}/> {t('RF / REFERÊNCIA', 'RF / REFERENCE')}</div>
+          <h1>{t('Referência de Atenuação de RF', 'RF Attenuation Reference')}</h1>
           <p>
-            Compare perdas típicas de materiais em 2.4 GHz, 5 GHz e 6 GHz.
+            {t('Compare perdas típicas de materiais em 2.4 GHz, 5 GHz e 6 GHz.', 'Compare typical material losses at 2.4 GHz, 5 GHz and 6 GHz.')}
           </p>
         </div>
         <button className="ghost-btn" onClick={reset}>
-          <RotateCcw size={15}/> Redefinir
+          <RotateCcw size={15}/> {t('Redefinir', 'Reset')}
         </button>
       </div>
 
       <section className="panel attenuation-controls">
         <div>
-          <label>Banda</label>
+          <label>{t('Banda', 'Band')}</label>
           <div className="segmented">
             {BANDS.map(item => (
               <button
@@ -74,27 +96,28 @@ export default function RfAttenuationReference() {
         </div>
 
         <div>
-          <label>Categoria</label>
-          <select value={category} onChange={e => setCategory(e.target.value)}>
-            {categories.map(item => <option key={item}>{item}</option>)}
+          <label>{t('Categoria', 'Category')}</label>
+          <select value={category} onChange={e => setCategory(e.target.value as MaterialCategory | typeof ALL)}>
+            <option value={ALL}>{t('Todos', 'All')}</option>
+            {categories.map(item => <option key={item} value={item}>{tl(MATERIAL_CATEGORY_LABELS[item])}</option>)}
           </select>
         </div>
 
         <div>
-          <label>Buscar</label>
+          <label>{t('Buscar', 'Search')}</label>
           <div className="attenuation-search">
             <Search size={14}/>
             <input
               value={query}
               onChange={e => setQuery(e.target.value)}
-              placeholder="Drywall, concreto, vidro..."
+              placeholder={t('Drywall, concreto, vidro...', 'Drywall, concrete, glass...')}
             />
           </div>
         </div>
       </section>
 
       <section className="panel attenuation-chart-panel">
-        <div className="panel-title"><BarChart3 size={13}/> Comparativo · {band}</div>
+        <div className="panel-title"><BarChart3 size={13}/> {t('Comparativo', 'Comparison')} · {band}</div>
 
         <div className="attenuation-bars">
           {filtered.map(item => {
@@ -104,8 +127,8 @@ export default function RfAttenuationReference() {
             return (
               <div className="attenuation-bar-row" key={item.id}>
                 <div className="attenuation-bar-label">
-                  <strong>{item.name}</strong>
-                  <span>{item.category}</span>
+                  <strong>{tl(item.name)}</strong>
+                  <span>{tl(MATERIAL_CATEGORY_LABELS[item.category])}</span>
                 </div>
 
                 <div className="attenuation-bar-track">
@@ -122,46 +145,41 @@ export default function RfAttenuationReference() {
 
         {filtered.length === 0 && (
           <div className="empty-channel">
-            Nenhum material corresponde aos filtros.
+            {t('Nenhum material corresponde aos filtros.', 'No material matches the filters.')}
           </div>
         )}
       </section>
 
       <section className="panel attenuation-table-panel">
-        <div className="panel-title">Tabela completa</div>
+        <div className="panel-title">{t('Tabela completa', 'Full table')}</div>
 
         <div className="attenuation-table-wrap">
           <table className="attenuation-table">
             <thead>
               <tr>
-                <th>Material</th>
-                <th>Categoria</th>
+                <th>{t('Material', 'Material')}</th>
+                <th>{t('Categoria', 'Category')}</th>
                 <th>2.4 GHz</th>
                 <th>5 GHz</th>
                 <th>6 GHz</th>
-                <th>Impacto em {band}</th>
+                <th>{t('Impacto em', 'Impact at')} {band}</th>
               </tr>
             </thead>
             <tbody>
               {filtered.map(item => {
-                const selectedLoss = item.lossDb[band]
-                const level =
-                  selectedLoss >= 20 ? 'Muito alto'
-                  : selectedLoss >= 10 ? 'Alto'
-                  : selectedLoss >= 5 ? 'Moderado'
-                  : 'Baixo'
+                const impact = impactOf(item.lossDb[band])
 
                 return (
                   <tr key={item.id}>
                     <td>
-                      <strong>{item.name}</strong>
-                      {item.note && <small>{item.note}</small>}
+                      <strong>{tl(item.name)}</strong>
+                      {item.note && <small>{tl(item.note)}</small>}
                     </td>
-                    <td>{item.category}</td>
+                    <td>{tl(MATERIAL_CATEGORY_LABELS[item.category])}</td>
                     <td>{formatNumber(item.lossDb['2.4 GHz'], 1)} dB</td>
                     <td>{formatNumber(item.lossDb['5 GHz'], 1)} dB</td>
                     <td>{formatNumber(item.lossDb['6 GHz'], 1)} dB</td>
-                    <td><span className={`attenuation-impact ${level.toLowerCase().replace(' ', '-')}`}>{level}</span></td>
+                    <td><span className={`attenuation-impact ${IMPACT_CLASS[impact]}`}>{impactLabel[impact]}</span></td>
                   </tr>
                 )
               })}
@@ -171,13 +189,13 @@ export default function RfAttenuationReference() {
       </section>
 
       <section className="info-panel">
-        <div className="eyebrow"><Info size={14}/> NOTA DE ENGENHARIA</div>
-        <h3>Os valores são referências típicas, não constantes universais.</h3>
+        <div className="eyebrow"><Info size={14}/> {t('NOTA DE ENGENHARIA', 'ENGINEERING NOTE')}</div>
+        <h3>{t('Os valores são referências típicas, não constantes universais.', 'These values are typical references, not universal constants.')}</h3>
         <p>
-          A atenuação real depende de espessura, composição, umidade, armadura,
-          película metálica, ângulo de incidência e geometria do ambiente.
-          Use esta tabela para planejamento preliminar e valide projetos críticos
-          com medições ou site survey.
+          {t(
+            'A atenuação real depende de espessura, composição, umidade, armadura, película metálica, ângulo de incidência e geometria do ambiente. Use esta tabela para planejamento preliminar e valide projetos críticos com medições ou site survey.',
+            'Real attenuation depends on thickness, composition, moisture, rebar, metallic film, angle of incidence and room geometry. Use this table for preliminary planning and validate critical designs with measurements or a site survey.',
+          )}
         </p>
       </section>
     </div>

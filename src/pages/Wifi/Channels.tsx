@@ -15,10 +15,12 @@ import {
   getEffectivePowerLimits,
   type RegulatoryDeviceType,
 } from '../../data/regulatoryPower'
+import { useI18n } from '../../i18n'
 
 const bands: WifiBand[] = ['2.4 GHz', '5 GHz', '6 GHz']
 
 export default function Channels() {
+  const { t, tl } = useI18n()
   const [band, setBand] = useState<WifiBand>('5 GHz')
   const [width, setWidth] = useState<ChannelWidth>(80)
   const [selected, setSelected] = useState<number | null>(42)
@@ -103,14 +105,14 @@ export default function Channels() {
       <div className="page-title">
         <div>
           <div className="eyebrow"><Radio size={14}/> WI-FI / RF</div>
-          <h1>Mapa de Canais Wi-Fi</h1>
-          <p>Analise Channel Width, Center Channel, ocupação do espectro e domínio regulatório.</p>
+          <h1>{t("Mapa de Canais Wi-Fi", "Wi-Fi Channel Map")}</h1>
+          <p>{t("Analise largura de canal, canal central, ocupação do espectro e domínio regulatório.", "Analyze channel width, center channel, spectrum occupancy and regulatory domain.")}</p>
         </div>
       </div>
 
       <section className="channel-controls panel regulatory-controls">
         <div>
-          <label>Banda</label>
+          <label>{t("Banda", "Band")}</label>
           <div className="segmented">
             {bands.map((item) => (
               <button
@@ -125,7 +127,7 @@ export default function Channels() {
         </div>
 
         <div>
-          <label>Channel Width</label>
+          <label>{t("Largura de canal", "Channel width")}</label>
           <select
             value={width}
             onChange={(e) => changeWidth(Number(e.target.value) as ChannelWidth)}
@@ -137,26 +139,26 @@ export default function Channels() {
         </div>
 
         <div>
-          <label>Regulatory Domain</label>
+          <label>{t("Domínio regulatório", "Regulatory domain")}</label>
           <select
             value={regulatoryProfile}
             onChange={(e) => setRegulatoryProfile(e.target.value as RegulatoryProfile)}
           >
-            <option value="IEEE">IEEE / Técnico</option>
-            <option value="BR-ANATEL">Brasil / ANATEL</option>
+            <option value="IEEE">{t("IEEE / Técnico", "IEEE / Technical")}</option>
+            <option value="BR-ANATEL">{t("Brasil / ANATEL", "Brazil / ANATEL")}</option>
           </select>
         </div>
 
         {regulatoryProfile === 'BR-ANATEL' && (
           <div>
-            <label>Tipo de equipamento</label>
+            <label>{t("Tipo de equipamento", "Device type")}</label>
             <select
               value={deviceType}
               onChange={(e) => setDeviceType(e.target.value as RegulatoryDeviceType)}
             >
-              <option value="AP">Access Point</option>
-              <option value="CLIENT">Client</option>
-              {band === '6 GHz' && <option value="VLP">Very Low Power</option>}
+              <option value="AP">{t("Ponto de acesso", "Access point")}</option>
+              <option value="CLIENT">{t("Cliente", "Client")}</option>
+              {band === '6 GHz' && <option value="VLP">{t("Potência muito baixa (VLP)", "Very low power (VLP)")}</option>}
             </select>
           </div>
         )}
@@ -168,7 +170,7 @@ export default function Channels() {
               checked={showDfsOnly}
               onChange={(e) => setShowDfsOnly(e.target.checked)}
             />
-            <span>Somente DFS</span>
+            <span>{t("Somente DFS", "DFS only")}</span>
           </label>
         )}
       </section>
@@ -176,24 +178,23 @@ export default function Channels() {
       {regulatoryProfile === 'BR-ANATEL' && (
         <section className="regulatory-banner">
           <div>
-            <strong>Brasil / ANATEL</strong>
-            <span>Perfil de referência de frequência ativo</span>
+            <strong>{t("Brasil / ANATEL", "Brazil / ANATEL")}</strong>
+            <span>{t("Perfil de referência de frequência ativo", "Frequency reference profile active")}</span>
           </div>
           <p>
-            Esta camada valida canais e apresenta os limites de referência de TX Power, EIRP e PSD
-            aplicáveis ao bloco selecionado. Blocos que cruzam subfaixas usam o limite numérico mais restritivo.
+            {t("Esta camada valida canais e apresenta os limites de referência de potência de TX, EIRP e PSD aplicáveis ao bloco selecionado. Blocos que cruzam subfaixas usam o limite numérico mais restritivo.", "This layer validates channels and shows the reference limits for TX power, EIRP and PSD that apply to the selected block. Blocks that span sub-bands use the most restrictive numeric limit.")}
           </p>
         </section>
       )}
 
       <section className="panel spectrum-overview-panel">
-        <div className="panel-title">Visão geral do espectro · {band} · {width} MHz</div>
+        <div className="panel-title">{t("Visão geral do espectro", "Spectrum overview")} · {band} · {width} MHz</div>
 
         <div className="spectrum-legend">
-          <span><i className="legend-normal"></i> Non-DFS</span>
+          <span><i className="legend-normal"></i> {t("Sem DFS", "Non-DFS")}</span>
           {band === '5 GHz' && <span><i className="legend-dfs"></i> DFS</span>}
-          {regulatoryProfile === 'BR-ANATEL' && <span><i className="legend-restricted"></i> Fora do perfil</span>}
-          <span><i className="legend-selected"></i> Selecionado</span>
+          {regulatoryProfile === 'BR-ANATEL' && <span><i className="legend-restricted"></i> {t("Fora do perfil", "Outside profile")}</span>}
+          <span><i className="legend-selected"></i> {t("Selecionado", "Selected")}</span>
         </div>
 
         <div className="spectrum-overview">
@@ -220,7 +221,7 @@ export default function Channels() {
                   top: `${16 + (index % 2) * 42}px`,
                 }}
                 onClick={() => setSelected(item.channel)}
-                title={`CH ${item.channel} · ${item.frequencyMHz} MHz · ${width} MHz · ${regulatory.label}`}
+                title={`CH ${item.channel} · ${item.frequencyMHz} MHz · ${width} MHz · ${tl(regulatory.label)}`}
               >
                 <strong>{item.channel}</strong>
                 <span>{item.frequencyMHz}</span>
@@ -232,24 +233,24 @@ export default function Channels() {
 
       {selectedChannel && selectedRegulatory && (
         <section className="panel spectrum-panel">
-          <div className="panel-title">Bloco selecionado</div>
+          <div className="panel-title">{t("Bloco selecionado", "Selected block")}</div>
 
           <div className="spectrum-header spectrum-header-four">
             <div>
-              <span>{width === 20 ? 'Channel' : 'Center Channel'}</span>
+              <span>{width === 20 ? t("Canal", "Channel") : t("Canal central", "Center channel")}</span>
               <strong>{selectedChannel.channel}</strong>
             </div>
             <div>
-              <span>Center Frequency</span>
+              <span>{t("Frequência central", "Center frequency")}</span>
               <strong>{selectedChannel.frequencyMHz} MHz</strong>
             </div>
             <div>
-              <span>Channel Width</span>
+              <span>{t("Largura de canal", "Channel width")}</span>
               <strong>{selectedChannel.width} MHz</strong>
             </div>
             <div className={selectedRegulatory.allowed ? 'reg-ok' : 'reg-fail'}>
-              <span>Regulatory Status</span>
-              <strong>{selectedRegulatory.label}</strong>
+              <span>{t("Status regulatório", "Regulatory status")}</span>
+              <strong>{tl(selectedRegulatory.label)}</strong>
             </div>
           </div>
 
@@ -265,50 +266,50 @@ export default function Channels() {
 
             <div className="center-marker">
               <div className="center-line"></div>
-              <span>Center CH {selectedChannel.channel}</span>
+              <span>{t("Canal central", "Center CH")} {selectedChannel.channel}</span>
               <strong>{selectedChannel.frequencyMHz} MHz</strong>
             </div>
           </div>
 
           <div className="spectrum-footer">
-            <span>{selectedChannel.constituent20MHz.length} bloco(s) de 20 MHz</span>
-            <span>{selectedChannel.dfs ? 'Contém DFS' : 'Sem DFS'}</span>
+            <span>{t(`${selectedChannel.constituent20MHz.length} bloco(s) de 20 MHz`, `${selectedChannel.constituent20MHz.length} × 20 MHz block(s)`)}</span>
+            <span>{selectedChannel.dfs ? t("Contém DFS", "Includes DFS") : t("Sem DFS", "No DFS")}</span>
           </div>
         </section>
       )}
 
       {regulatoryProfile === 'BR-ANATEL' && selectedChannel && powerLimits && (
         <section className="panel power-limits-panel">
-          <div className="panel-title"><Zap size={13}/> Limites regulatórios de potência</div>
+          <div className="panel-title"><Zap size={13}/> {t("Limites regulatórios de potência", "Regulatory power limits")}</div>
 
           <div className="power-limit-grid">
             <PowerLimit
-              label="Max TX Power (total conduzido)"
+              label={t("Potência de TX máx. (total conduzido)", "Max TX power (total conducted)")}
               value={
                 powerLimits.baseMaxConductedDbm !== undefined
                   ? `${powerLimits.baseMaxConductedDbm.toFixed(2)} dBm`
-                  : powerLimits.applicable ? 'Regra por EIRP' : '—'
+                  : powerLimits.applicable ? t("Regra por EIRP", "EIRP-based rule") : '—'
               }
             />
             <PowerLimit
-              label="Max EIRP"
+              label={t("EIRP máxima", "Max EIRP")}
               value={
                 powerLimits.maxEirpDbm !== undefined
                   ? `${powerLimits.maxEirpDbm.toFixed(2)} dBm`
-                  : powerLimits.applicable ? 'Conduzido + ganho até 6 dBi' : '—'
+                  : powerLimits.applicable ? t("Conduzida + ganho até 6 dBi", "Conducted + gain up to 6 dBi") : '—'
               }
             />
             <PowerLimit
-              label={powerLimits.psdKind === 'EIRP' ? 'Max PSD (EIRP)' : 'Max PSD (conduzida)'}
+              label={powerLimits.psdKind === 'EIRP' ? t("PSD máx. (EIRP)", "Max PSD (EIRP)") : t("PSD máx. (conduzida)", "Max PSD (conducted)")}
               value={
                 powerLimits.maxPsdDbmMHz !== undefined
                   ? `${powerLimits.maxPsdDbmMHz.toFixed(2)} dBm/MHz`
-                  : powerLimits.psdText ?? '—'
+                  : powerLimits.psdText ? tl(powerLimits.psdText) : '—'
               }
             />
             <PowerLimit
-              label="Ambiente"
-              value={powerLimits.indoorOnly ? 'Indoor' : 'Conforme regra aplicável'}
+              label={t("Ambiente", "Environment")}
+              value={powerLimits.indoorOnly ? 'Indoor' : t("Conforme regra aplicável", "Per applicable rule")}
             />
           </div>
 
@@ -316,8 +317,8 @@ export default function Channels() {
             <div className="mixed-band-warning">
               <ShieldAlert size={16}/>
               <div>
-                <strong>Fora das faixas permitidas</strong>
-                <p>{powerLimits.note}</p>
+                <strong>{t("Fora das faixas permitidas", "Outside allowed bands")}</strong>
+                <p>{powerLimits.note ? tl(powerLimits.note) : null}</p>
               </div>
             </div>
           )}
@@ -326,8 +327,8 @@ export default function Channels() {
             <div className="mixed-band-warning">
               <ShieldAlert size={16}/>
               <div>
-                <strong>Bloco cruza múltiplas subfaixas</strong>
-                <p>{powerLimits.note}</p>
+                <strong>{t("Bloco cruza múltiplas subfaixas", "Block spans multiple sub-bands")}</strong>
+                <p>{powerLimits.note ? tl(powerLimits.note) : null}</p>
               </div>
             </div>
           )}
@@ -336,10 +337,10 @@ export default function Channels() {
             {powerLimits.rules.map(rule => (
               <div className="rule-item" key={rule.id}>
                 <div>
-                  <strong>{rule.label}</strong>
+                  <strong>{tl(rule.label)}</strong>
                   <span>{rule.id}</span>
                 </div>
-                <p>{rule.note}</p>
+                <p>{rule.note ? tl(rule.note) : null}</p>
               </div>
             ))}
           </div>
@@ -348,7 +349,7 @@ export default function Channels() {
 
       <div className="channel-layout">
         <section className="panel channel-panel">
-          <div className="panel-title">Center Channels · {band} · {width} MHz</div>
+          <div className="panel-title">{t("Canais centrais", "Center channels")} · {band} · {width} MHz</div>
 
           <div className="channel-grid">
             {channels.map(({ config: item, regulatory }) => (
@@ -360,43 +361,43 @@ export default function Channels() {
                 <strong>{item.channel}</strong>
                 <span>{item.frequencyMHz} MHz</span>
                 {item.dfs && <small>DFS</small>}
-                {!regulatory.allowed && <em>Bloqueado</em>}
+                {!regulatory.allowed && <em>{t("Bloqueado", "Blocked")}</em>}
               </button>
             ))}
           </div>
         </section>
 
         <aside className="panel channel-details">
-          <div className="panel-title">Detalhes</div>
+          <div className="panel-title">{t("Detalhes", "Details")}</div>
 
           {selectedChannel && selectedRegulatory ? (
             <>
               <div className="selected-channel">
-                <span>{width === 20 ? 'Channel' : 'Center Channel'}</span>
+                <span>{width === 20 ? t("Canal", "Channel") : t("Canal central", "Center channel")}</span>
                 <strong>{selectedChannel.channel}</strong>
                 <small>{selectedChannel.frequencyMHz} MHz</small>
               </div>
 
-              <Detail label="Band" value={selectedChannel.band} />
-              <Detail label="Channel Width" value={`${width} MHz`} />
-              <Detail label="Center Frequency" value={`${selectedChannel.frequencyMHz} MHz`} />
-              <Detail label="DFS" value={selectedChannel.dfs ? 'Sim' : 'Não'} />
+              <Detail label={t("Banda", "Band")} value={selectedChannel.band} />
+              <Detail label={t("Largura de canal", "Channel width")} value={`${width} MHz`} />
+              <Detail label={t("Frequência central", "Center frequency")} value={`${selectedChannel.frequencyMHz} MHz`} />
+              <Detail label="DFS" value={selectedChannel.dfs ? t("Sim", "Yes") : t("Não", "No")} />
 
               {(() => {
                 const occupied = getOccupiedRange(selectedChannel)
-                return <Detail label="Occupied Range" value={`${occupied.startMHz}–${occupied.endMHz} MHz`} />
+                return <Detail label={t("Faixa ocupada", "Occupied range")} value={`${occupied.startMHz}–${occupied.endMHz} MHz`} />
               })()}
 
               <div className={`reg-status-box ${selectedRegulatory.allowed ? 'allowed' : 'blocked'}`}>
                 {selectedRegulatory.allowed ? <CheckCircle2 size={17}/> : <XCircle size={17}/>}
                 <div>
-                  <strong>{selectedRegulatory.label}</strong>
-                  {selectedRegulatory.note && <p>{selectedRegulatory.note}</p>}
+                  <strong>{tl(selectedRegulatory.label)}</strong>
+                  {selectedRegulatory.note && <p>{tl(selectedRegulatory.note)}</p>}
                 </div>
               </div>
 
               <div className="constituent-box">
-                <span>Canais de 20 MHz que compõem o bloco</span>
+                <span>{t("Canais de 20 MHz que compõem o bloco", "20 MHz channels in this block")}</span>
                 <div>
                   {selectedChannel.constituent20MHz.map((ch) => <b key={ch}>{ch}</b>)}
                 </div>
@@ -406,25 +407,23 @@ export default function Channels() {
                 <div className="warning-box">
                   <ShieldAlert size={16}/>
                   <div>
-                    <strong>Bloco com DFS</strong>
-                    <p>O uso pode exigir CAC e mudança de canal caso radar seja detectado.</p>
+                    <strong>{t("Bloco com DFS", "DFS block")}</strong>
+                    <p>{t("O uso pode exigir CAC e mudança de canal caso radar seja detectado.", "Use may require CAC and a channel change if radar is detected.")}</p>
                   </div>
                 </div>
               )}
             </>
           ) : (
-            <p className="helper-text">Selecione um canal no mapa.</p>
+            <p className="helper-text">{t("Selecione um canal no mapa.", "Select a channel on the map.")}</p>
           )}
         </aside>
       </div>
 
       <section className="info-panel">
-        <div className="eyebrow"><Info size={14}/> REFERÊNCIA REGULATÓRIA</div>
-        <h3>O perfil Brasil / ANATEL é uma camada independente da canalização IEEE.</h3>
+        <div className="eyebrow"><Info size={14}/> {t("REFERÊNCIA REGULATÓRIA", "REGULATORY REFERENCE")}</div>
+        <h3>{t("O perfil Brasil / ANATEL é uma camada independente da canalização IEEE.", "The Brazil / ANATEL profile is a layer independent of IEEE channelization.")}</h3>
         <p>
-          Referências principais: Regulamento sobre Equipamentos de Radiocomunicação de Radiação Restrita
-          e requisitos técnicos consolidados do Ato nº 14.448/2017, com alterações posteriores.
-          Este módulo ainda não substitui a análise completa dos requisitos de certificação.
+          {t("Referências principais: Regulamento sobre Equipamentos de Radiocomunicação de Radiação Restrita e requisitos técnicos consolidados do Ato nº 14.448/2017, com alterações posteriores (incluindo o Ato nº 10.400/2026 para 6 GHz). Este módulo não substitui a análise completa dos requisitos de certificação.", "Main references: ANATEL Restricted Radiation Radiocommunication Equipment Regulation and the consolidated technical requirements of Ato nº 14.448/2017 with later amendments (including Ato nº 10.400/2026 for 6 GHz). This module does not replace a full review of certification requirements.")}
         </p>
       </section>
     </div>

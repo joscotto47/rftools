@@ -12,6 +12,7 @@ import {
 } from '../../calculations/wifiCapacity'
 import { MCS, WIDTHS, phyRate, type WifiGeneration } from '../../calculations/phyRate'
 import { formatNumber } from '../../calculations/rf'
+import { useI18n } from '../../i18n'
 
 
 type RadioBand = '2.4 GHz' | '5 GHz' | '6 GHz'
@@ -34,6 +35,13 @@ const DEFAULT_RADIOS: RadioConfig[] = [
 ]
 
 export default function WifiCapacityCalculator() {
+  const { t, tl } = useI18n()
+  const statusLabel: Record<string, string> = {
+    EXCELLENT: t("EXCELENTE", "EXCELLENT"),
+    GOOD: t("BOM", "GOOD"),
+    BUSY: t("CARREGADO", "BUSY"),
+    OVERLOADED: t("SOBRECARREGADO", "OVERLOADED"),
+  }
   const [generation, setGeneration] = useState<WifiGeneration>('Wi-Fi 6')
   const [width, setWidth] = useState(80)
   const [mcs, setMcs] = useState(9)
@@ -264,25 +272,24 @@ export default function WifiCapacityCalculator() {
     <div>
       <div className="page-title">
         <div>
-          <div className="eyebrow"><Wifi size={14}/> WI-FI / CAPACITY</div>
-          <h1>Wi-Fi Capacity Calculator</h1>
+          <div className="eyebrow"><Wifi size={14}/> {t("WI-FI / CAPACIDADE", "WI-FI / CAPACITY")}</div>
+          <h1>{t("Calculadora de Capacidade Wi-Fi", "Wi-Fi Capacity Calculator")}</h1>
           <p>
-            Estime airtime, capacidade útil, throughput por cliente e quantidade
-            de clientes suportados por rádio/AP.
+            {t("Estime airtime, capacidade útil, throughput por cliente e quantidade de clientes suportados por rádio/AP.", "Estimate airtime, usable capacity, per-client throughput and the number of clients supported per radio/AP.")}
           </p>
         </div>
         <button className="ghost-btn" onClick={reset}>
-          <RotateCcw size={15}/> Redefinir
+          <RotateCcw size={15}/> {t("Redefinir", "Reset")}
         </button>
       </div>
 
       <section className="capacity-mode-bar multi-mode-bar">
         <div>
-          <span>Topologia do AP</span>
+          <span>{t("Topologia do AP", "AP topology")}</span>
           <strong>
             {apMode === 'SINGLE'
-              ? 'Single Radio'
-              : 'Multi-Radio AP'}
+              ? t("Rádio único", "Single radio")
+              : t("AP multi-rádio", "Multi-radio AP")}
           </strong>
         </div>
 
@@ -291,24 +298,24 @@ export default function WifiCapacityCalculator() {
             className={apMode === 'SINGLE' ? 'selected' : ''}
             onClick={() => setApMode('SINGLE')}
           >
-            Single Radio
+            {t("Rádio único", "Single radio")}
           </button>
           <button
             className={apMode === 'MULTI' ? 'selected' : ''}
             onClick={() => setApMode('MULTI')}
           >
-            Multi-Radio
+            {t("Multi-rádio", "Multi-radio")}
           </button>
         </div>
 
         {apMode === 'SINGLE' && (
           <>
             <div>
-              <span>Modelo de capacidade</span>
+              <span>{t("Modelo de capacidade", "Capacity model")}</span>
               <strong>
                 {capacityMode === 'SIMPLE'
-                  ? 'PHY Rate único'
-                  : 'Mix de clientes por MCS'}
+                  ? t("PHY Rate único", "Single PHY rate")
+                  : t("Mix de clientes por MCS", "Client mix by MCS")}
               </strong>
             </div>
             <div className="capacity-mode-tabs">
@@ -316,13 +323,13 @@ export default function WifiCapacityCalculator() {
                 className={capacityMode === 'SIMPLE' ? 'selected' : ''}
                 onClick={() => setCapacityMode('SIMPLE')}
               >
-                Simple
+                {t("Simples", "Simple")}
               </button>
               <button
                 className={capacityMode === 'MIX' ? 'selected' : ''}
                 onClick={() => setCapacityMode('MIX')}
               >
-                MCS Mix
+                {t("Mix de MCS", "MCS mix")}
               </button>
             </div>
           </>
@@ -333,10 +340,10 @@ export default function WifiCapacityCalculator() {
       <>
       <div className="capacity-top-grid">
         <section className="panel">
-          <div className="panel-title">Configuração PHY</div>
+          <div className="panel-title">{t("Configuração PHY", "PHY configuration")}</div>
 
           <div className="capacity-input-grid">
-            <Field label="Wi-Fi Generation">
+            <Field label={t("Geração Wi-Fi", "Wi-Fi generation")}>
               <select value={generation} onChange={e => changeGeneration(e.target.value as WifiGeneration)}>
                 <option>Wi-Fi 5</option>
                 <option>Wi-Fi 6</option>
@@ -344,7 +351,7 @@ export default function WifiCapacityCalculator() {
               </select>
             </Field>
 
-            <Field label="Channel Width">
+            <Field label={t("Largura de canal", "Channel width")}>
               <select value={width} onChange={e => setWidth(Number(e.target.value))}>
                 {WIDTHS[generation].map(v => <option key={v} value={v}>{v} MHz</option>)}
               </select>
@@ -379,25 +386,25 @@ export default function WifiCapacityCalculator() {
 
           <div className="capacity-phy-strip">
             <div>
-              <span>{capacityMode === 'MIX' ? 'PHY médio por airtime' : 'PHY Rate'}</span>
+              <span>{capacityMode === 'MIX' ? t("PHY médio por airtime", "Airtime-weighted PHY") : 'PHY Rate'}</span>
               <strong>{formatNumber(capacityMode === 'MIX' ? result.averagePhy : result.phy, 1)} Mbps</strong>
             </div>
             <div>
-              <span>Modelo</span>
-              <strong>{capacityMode === 'MIX' ? 'MCS Mix' : mcsInfo.modulation}</strong>
+              <span>{t("Modelo", "Model")}</span>
+              <strong>{capacityMode === 'MIX' ? t("Mix de MCS", "MCS mix") : mcsInfo.modulation}</strong>
             </div>
             <div>
-              <span>{capacityMode === 'MIX' ? 'Perfis ativos' : 'Coding Rate'}</span>
+              <span>{capacityMode === 'MIX' ? t("Perfis ativos", "Active profiles") : t("Taxa de código", "Coding rate")}</span>
               <strong>{capacityMode === 'MIX' ? `${mixEntries.length} MCS` : mcsInfo.codingRate}</strong>
             </div>
           </div>
         </section>
 
         <section className="panel">
-          <div className="panel-title">Modelo de carga</div>
+          <div className="panel-title">{t("Modelo de carga", "Load model")}</div>
 
           <SliderField
-            label="Clientes associados"
+            label={t("Clientes associados", "Associated clients")}
             value={clients}
             min={1}
             max={200}
@@ -405,7 +412,7 @@ export default function WifiCapacityCalculator() {
             onChange={setClients}
           />
           <SliderField
-            label="Concorrência média"
+            label={t("Concorrência média", "Average concurrency")}
             value={concurrency}
             min={5}
             max={100}
@@ -413,7 +420,7 @@ export default function WifiCapacityCalculator() {
             onChange={setConcurrency}
           />
           <SliderField
-            label="Eficiência MAC/PHY"
+            label={t("Eficiência MAC/PHY", "MAC/PHY efficiency")}
             value={efficiency}
             min={30}
             max={85}
@@ -421,7 +428,7 @@ export default function WifiCapacityCalculator() {
             onChange={setEfficiency}
           />
           <SliderField
-            label="Airtime utilizável alvo"
+            label={t("Airtime utilizável alvo", "Target usable airtime")}
             value={airtimeLimit}
             min={40}
             max={90}
@@ -429,7 +436,7 @@ export default function WifiCapacityCalculator() {
             onChange={setAirtimeLimit}
           />
           <SliderField
-            label="Demanda por cliente ativo"
+            label={t("Demanda por cliente ativo", "Demand per active client")}
             value={demandPerClient}
             min={1}
             max={50}
@@ -441,18 +448,17 @@ export default function WifiCapacityCalculator() {
 
       {capacityMode === 'MIX' && (
         <section className="panel mcs-mix-panel">
-          <div className="panel-title">Distribuição de clientes por MCS</div>
+          <div className="panel-title">{t("Distribuição de clientes por MCS", "Client distribution by MCS")}</div>
 
           <div className="mcs-mix-summary">
             <span>
-              Informe a distribuição percentual aproximada dos clientes ativos.
-              Os valores são normalizados automaticamente para 100%.
+              {t("Informe a distribuição percentual aproximada dos clientes ativos. Os valores são normalizados automaticamente para 100%.", "Enter the approximate percentage split of active clients. Values are normalized to 100% automatically.")}
             </span>
             <strong>
               {formatNumber(
                 Object.values(mcsMix).reduce((sum, value) => sum + Math.max(0, value), 0),
                 0,
-              )}% informado
+              )}% {t("informado", "entered")}
             </strong>
           </div>
 
@@ -492,7 +498,7 @@ export default function WifiCapacityCalculator() {
                   </div>
 
                   <small>
-                    Normalizado: {formatNumber(normalized, 1)}%
+                    {t("Normalizado", "Normalized")}: {formatNumber(normalized, 1)}%
                   </small>
                 </div>
               )
@@ -506,64 +512,64 @@ export default function WifiCapacityCalculator() {
           <Gauge size={28}/>
         </div>
         <div>
-          <span>Capacity Status</span>
-          <strong>{result.classification.label}</strong>
-          <p>{result.classification.description}</p>
+          <span>{t("Status de capacidade", "Capacity status")}</span>
+          <strong>{statusLabel[result.classification.label]}</strong>
+          <p>{tl(result.classification.description)}</p>
         </div>
         <div className="capacity-status-airtime">
-          <span>Airtime Demand</span>
+          <span>{t("Demanda de airtime", "Airtime demand")}</span>
           <strong>{formatNumber(result.airtimeDemand, 1)}%</strong>
-          <small>Limite alvo: {airtimeLimit}%</small>
+          <small>{t("Limite alvo", "Target limit")}: {airtimeLimit}%</small>
         </div>
       </section>
 
       <div className="capacity-metrics-grid">
         <Metric
           icon={<Wifi size={18}/>}
-          label="Capacidade útil estimada"
+          label={t("Capacidade útil estimada", "Estimated usable capacity")}
           value={`${formatNumber(result.usableCapacity, 1)} Mbps`}
-          note={`PHY × ${efficiency}% eficiência × ${airtimeLimit}% airtime`}
+          note={t(`PHY × ${efficiency}% eficiência × ${airtimeLimit}% airtime`, `PHY × ${efficiency}% efficiency × ${airtimeLimit}% airtime`)}
         />
         <Metric
           icon={<Users size={18}/>}
-          label="Clientes ativos estimados"
+          label={t("Clientes ativos estimados", "Estimated active clients")}
           value={formatNumber(result.activeClients, 1)}
-          note={`${clients} associados × ${concurrency}% concorrência`}
+          note={t(`${clients} associados × ${concurrency}% concorrência`, `${clients} associated × ${concurrency}% concurrency`)}
         />
         <Metric
           icon={<Gauge size={18}/>}
-          label="Throughput por cliente ativo"
+          label={t("Throughput por cliente ativo", "Throughput per active client")}
           value={`${formatNumber(result.perClient, 1)} Mbps`}
-          note="Divisão simples da capacidade útil entre clientes ativos"
+          note={t("Divisão simples da capacidade útil entre clientes ativos", "Usable capacity split evenly among active clients")}
         />
         <Metric
           icon={<Users size={18}/>}
-          label="Máx. clientes para essa demanda"
+          label={t("Máx. clientes para essa demanda", "Max clients for this demand")}
           value={String(result.maxClients)}
-          note={`${demandPerClient} Mbps por cliente ativo`}
+          note={t(`${demandPerClient} Mbps por cliente ativo`, `${demandPerClient} Mbps per active client`)}
         />
       </div>
 
       <section className="panel capacity-scenario-panel">
-        <div className="panel-title">Cenário resumido</div>
+        <div className="panel-title">{t("Cenário resumido", "Scenario summary")}</div>
         <div className="capacity-scenario-flow">
           <div>
-            <span>{capacityMode === 'MIX' ? 'PHY médio airtime' : 'PHY Rate'}</span>
+            <span>{capacityMode === 'MIX' ? t("PHY médio por airtime", "Airtime-weighted PHY") : 'PHY Rate'}</span>
             <strong>{formatNumber(capacityMode === 'MIX' ? result.averagePhy : result.phy, 1)} Mbps</strong>
           </div>
           <b>×</b>
           <div>
-            <span>Eficiência</span>
+            <span>{t("Eficiência", "Efficiency")}</span>
             <strong>{efficiency}%</strong>
           </div>
           <b>×</b>
           <div>
-            <span>Airtime alvo</span>
+            <span>{t("Airtime alvo", "Target airtime")}</span>
             <strong>{airtimeLimit}%</strong>
           </div>
           <b>=</b>
           <div className="highlight">
-            <span>Capacidade útil</span>
+            <span>{t("Capacidade útil", "Usable capacity")}</span>
             <strong>{formatNumber(result.usableCapacity, 1)} Mbps</strong>
           </div>
         </div>
@@ -575,7 +581,7 @@ export default function WifiCapacityCalculator() {
       {apMode === 'MULTI' && multiRadioResult && (
         <>
           <section className="panel multi-radio-config-panel">
-            <div className="panel-title">Rádios do AP</div>
+            <div className="panel-title">{t("Rádios do AP", "AP radios")}</div>
 
             <div className="radio-config-grid">
               {radios.map(radio => {
@@ -591,7 +597,7 @@ export default function WifiCapacityCalculator() {
                     <div className="radio-config-head">
                       <div>
                         <strong>{radio.id}</strong>
-                        <span>{radio.enabled ? 'Ativo' : 'Desativado'}</span>
+                        <span>{radio.enabled ? t("Ativo", "Enabled") : t("Desativado", "Disabled")}</span>
                       </div>
                       <label className="radio-toggle">
                         <input
@@ -605,7 +611,7 @@ export default function WifiCapacityCalculator() {
                       </label>
                     </div>
 
-                    <Field label="Wi-Fi Generation">
+                    <Field label={t("Geração Wi-Fi", "Wi-Fi generation")}>
                       <select
                         value={radio.generation}
                         disabled={!radio.enabled}
@@ -630,7 +636,7 @@ export default function WifiCapacityCalculator() {
                     </Field>
 
                     <div className="radio-config-row">
-                      <Field label="Channel Width">
+                      <Field label={t("Largura de canal", "Channel width")}>
                         <select
                           value={radio.width}
                           disabled={!radio.enabled}
@@ -695,7 +701,7 @@ export default function WifiCapacityCalculator() {
                     </div>
 
                     <div className="radio-client-share">
-                      <label>Distribuição de clientes</label>
+                      <label>{t("Distribuição de clientes", "Client share")}</label>
                       <div>
                         <input
                           type="number"
@@ -718,32 +724,32 @@ export default function WifiCapacityCalculator() {
             </div>
 
             <div className="multi-radio-note">
-              Distribuição informada: {formatNumber(totalClientShare, 0)}%.
-              O RFTools normaliza automaticamente os rádios ativos para 100%.
+              {t("Distribuição informada", "Entered share")}: {formatNumber(totalClientShare, 0)}%.
+              {t("O RFTools normaliza automaticamente os rádios ativos para 100%.", "RFTools normalizes active radios to 100% automatically.")}
             </div>
           </section>
 
           <section className="panel multi-radio-summary-panel">
-            <div className="panel-title">Capacidade total do AP</div>
+            <div className="panel-title">{t("Capacidade total do AP", "Total AP capacity")}</div>
 
             <div className="multi-radio-total-grid">
               <Metric
                 icon={<Wifi size={18}/>}
-                label="Capacidade útil total"
+                label={t("Capacidade útil total", "Total usable capacity")}
                 value={`${formatNumber(multiRadioResult.totalCapacity, 1)} Mbps`}
-                note="Soma da capacidade útil dos rádios ativos"
+                note={t("Soma da capacidade útil dos rádios ativos", "Sum of usable capacity of active radios")}
               />
               <Metric
                 icon={<Users size={18}/>}
-                label="Clientes ativos estimados"
+                label={t("Clientes ativos estimados", "Estimated active clients")}
                 value={formatNumber(multiRadioResult.totalActive, 1)}
-                note={`${clients} associados × ${concurrency}% concorrência`}
+                note={t(`${clients} associados × ${concurrency}% concorrência`, `${clients} associated × ${concurrency}% concurrency`)}
               />
               <Metric
                 icon={<Gauge size={18}/>}
-                label="Throughput médio por cliente"
+                label={t("Throughput médio por cliente", "Average throughput per client")}
                 value={`${formatNumber(multiRadioResult.weightedPerClient, 1)} Mbps`}
-                note="Capacidade total dividida pelos clientes ativos"
+                note={t("Capacidade total dividida pelos clientes ativos", "Total capacity divided by active clients")}
               />
             </div>
 
@@ -756,17 +762,17 @@ export default function WifiCapacityCalculator() {
                   <div className="radio-result-head">
                     <div>
                       <span>{radio.id}</span>
-                      <strong>{radio.classification.label}</strong>
+                      <strong>{statusLabel[radio.classification.label]}</strong>
                     </div>
-                    <b>{formatNumber(radio.normalizedShare, 1)}% clientes</b>
+                    <b>{formatNumber(radio.normalizedShare, 1)}% {t("clientes", "clients")}</b>
                   </div>
 
                   <div className="radio-result-metrics">
                     <div><span>PHY Rate</span><strong>{formatNumber(radio.phy, 1)} Mbps</strong></div>
-                    <div><span>Capacidade útil</span><strong>{formatNumber(radio.usableCapacity, 1)} Mbps</strong></div>
+                    <div><span>{t("Capacidade útil", "Usable capacity")}</span><strong>{formatNumber(radio.usableCapacity, 1)} Mbps</strong></div>
                     <div><span>Airtime</span><strong>{formatNumber(radio.airtimeDemand, 1)}%</strong></div>
-                    <div><span>Clientes ativos</span><strong>{formatNumber(radio.activeClients, 1)}</strong></div>
-                    <div><span>Mbps / cliente</span><strong>{formatNumber(radio.perClient, 1)}</strong></div>
+                    <div><span>{t("Clientes ativos", "Active clients")}</span><strong>{formatNumber(radio.activeClients, 1)}</strong></div>
+                    <div><span>{t("Mbps / cliente", "Mbps / client")}</span><strong>{formatNumber(radio.perClient, 1)}</strong></div>
                   </div>
                 </div>
               ))}
@@ -776,14 +782,10 @@ export default function WifiCapacityCalculator() {
       )}
 
       <section className="info-panel">
-        <div className="eyebrow"><Info size={14}/> NOTA DE ENGENHARIA</div>
-        <h3>Capacidade Wi-Fi depende de airtime, não apenas de PHY Rate.</h3>
+        <div className="eyebrow"><Info size={14}/> {t("NOTA DE ENGENHARIA", "ENGINEERING NOTE")}</div>
+        <h3>{t("Capacidade Wi-Fi depende de airtime, não apenas de PHY Rate.", "Wi-Fi capacity depends on airtime, not just PHY rate.")}</h3>
         <p>
-          Em Single Radio, o modelo usa PHY único ou MCS Mix. Em Multi-Radio, a capacidade
-          é calculada por rádio e somada no AP, com distribuição de clientes normalizada.
-          Redes reais sofrem impacto de clientes lentos,
-          retransmissões, interferência co-channel, roaming, QoS, OFDMA, MU-MIMO,
-          tamanho de frame, direção do tráfego e overhead de gerenciamento.
+          {t("Em rádio único, o modelo usa PHY único ou mix de MCS. Em multi-rádio, a capacidade é calculada por rádio e somada no AP, com distribuição de clientes normalizada. Redes reais sofrem impacto de clientes lentos, retransmissões, interferência co-channel, roaming, QoS, OFDMA, MU-MIMO, tamanho de frame, direção do tráfego e overhead de gerenciamento.", "In single-radio mode, the model uses a single PHY rate or an MCS mix. In multi-radio mode, capacity is calculated per radio and summed for the AP, with a normalized client split. Real networks are affected by slow clients, retransmissions, co-channel interference, roaming, QoS, OFDMA, MU-MIMO, frame size, traffic direction and management overhead.")}
         </p>
       </section>
     </div>

@@ -1,5 +1,6 @@
 import type { ChannelConfig } from './wifiChannels'
 import { ANATEL_6GHZ_MAX_MHZ, getOccupiedRange } from './regulatory'
+import { type Localized } from '../i18n'
 
 /**
  * Power limits from ANATEL Ato nº 14448/2017 (Requisitos Técnicos de Radiação Restrita),
@@ -26,14 +27,14 @@ type AntennaRule = {
 
 export type PowerRule = {
   id: string
-  label: string
+  label: Localized
   minMHz: number
   maxMHz: number
   maxConductedDbm?: number
   maxEirpDbm?: number
   maxPsdDbmMHz?: number
   psdKind?: PsdKind
-  psdText?: string
+  psdText?: Localized
   antenna?: AntennaRule
   /** Replaces `antenna` when the equipment is used exclusively for fixed point-to-point links. */
   fixedPtpAntenna?: AntennaRule
@@ -41,7 +42,7 @@ export type PowerRule = {
   noTpcMaxEirpDbm?: number
   indoorOnly?: boolean
   dfsRequired?: boolean
-  note?: string
+  note?: Localized
 }
 
 export type PowerLimitOptions = {
@@ -59,7 +60,7 @@ export type EffectivePowerLimits = {
   maxPsdDbmMHz?: number
   adjustedMaxPsdDbmMHz?: number
   psdKind?: PsdKind
-  psdText?: string
+  psdText?: Localized
   antennaReductionDb: number
   antennaThresholdDbi?: number
   fixedPtpExemptionApplied: boolean
@@ -67,7 +68,7 @@ export type EffectivePowerLimits = {
   indoorOnly: boolean
   dfsRequired: boolean
   mixedSubBands: boolean
-  note?: string
+  note?: Localized
 }
 
 const round2 = (value: number) => Math.round(value * 100) / 100
@@ -90,19 +91,19 @@ export function antennaReductionDb(gainDbi: number, rule?: AntennaRule): number 
   return 0
 }
 
-const DIGITAL_MODULATION_PSD = '8 dBm / 3 kHz (item 10.3.3)'
+const DIGITAL_MODULATION_PSD: Localized = { pt: '8 dBm / 3 kHz (item 10.3.3)', en: '8 dBm / 3 kHz (item 10.3.3)' }
 
 function twoFourGHzRules(): PowerRule[] {
   return [{
     id: 'ANATEL 10.3 / 10.5.1',
-    label: '2.400–2.483,5 MHz · Modulação digital',
+    label: { pt: "2.400–2.483,5 MHz · Modulação digital", en: "2,400–2,483.5 MHz · Digital modulation" },
     minMHz: 2400,
     maxMHz: 2483.5,
     maxConductedDbm: 30,
     psdText: DIGITAL_MODULATION_PSD,
     antenna: { thresholdDbi: 6, mode: 'ONE_TO_ONE' },
     fixedPtpAntenna: { thresholdDbi: 6, mode: 'ONE_PER_THREE' },
-    note: 'Potência conduzida total limitada a 1 W (30 dBm). Ganho acima de 6 dBi reduz a potência 1 dB por dB excedente; em ponto-a-ponto exclusivo do serviço fixo, 1 dB a cada 3 dB excedentes (item 10.5.1).',
+    note: { pt: "Potência conduzida total limitada a 1 W (30 dBm). Ganho acima de 6 dBi reduz a potência 1 dB por dB excedente; em ponto-a-ponto exclusivo do serviço fixo, 1 dB a cada 3 dB excedentes (item 10.5.1).", en: "Total conducted power limited to 1 W (30 dBm). Gain above 6 dBi reduces power 1 dB per dB of excess; for fixed point-to-point links only, 1 dB per 3 dB of excess (item 10.5.1)." },
   }]
 }
 
@@ -115,7 +116,7 @@ function standard5GHzRules(config: ChannelConfig, deviceType: RegulatoryDeviceTy
   const lowBand: PowerRule = deviceType === 'CLIENT'
     ? {
         id: 'ANATEL 11.1.3',
-        label: '5.150–5.250 MHz · Cliente',
+        label: { pt: "5.150–5.250 MHz · Cliente", en: "5,150–5,250 MHz · Client" },
         minMHz: 5150,
         maxMHz: 5250,
         maxConductedDbm: 24,
@@ -123,11 +124,11 @@ function standard5GHzRules(config: ChannelConfig, deviceType: RegulatoryDeviceTy
         psdKind: 'CONDUCTED',
         antenna: general6,
         noTpcMaxEirpDbm: 27,
-        note: 'Potência conduzida 24 dBm e PSD conduzida 11 dBm/MHz. Ganho acima de 6 dBi reduz ambos 1 dB por dB excedente.',
+        note: { pt: "Potência conduzida 24 dBm e PSD conduzida 11 dBm/MHz. Ganho acima de 6 dBi reduz ambos 1 dB por dB excedente.", en: "Conducted power 24 dBm and conducted PSD 11 dBm/MHz. Gain above 6 dBi reduces both 1 dB per dB of excess." },
       }
     : {
         id: 'ANATEL 11.1.1 / 11.1.2',
-        label: '5.150–5.250 MHz · Ponto de acesso',
+        label: { pt: "5.150–5.250 MHz · Ponto de acesso", en: "5,150–5,250 MHz · Access point" },
         minMHz: 5150,
         maxMHz: 5250,
         maxConductedDbm: 30,
@@ -136,14 +137,14 @@ function standard5GHzRules(config: ChannelConfig, deviceType: RegulatoryDeviceTy
         antenna: general6,
         fixedPtpAntenna: { thresholdDbi: 23, mode: 'ONE_TO_ONE' },
         noTpcMaxEirpDbm: 27,
-        note: 'Potência conduzida 30 dBm e PSD conduzida 17 dBm/MHz. Ganho acima de 6 dBi reduz ambos (23 dBi em ponto-a-ponto fixo, item 11.1.2). Em ambiente aberto, EIRP limitada a 21 dBm acima de 30° de elevação (item 11.1.1.4).',
+        note: { pt: "Potência conduzida 30 dBm e PSD conduzida 17 dBm/MHz. Ganho acima de 6 dBi reduz ambos (23 dBi em ponto-a-ponto fixo, item 11.1.2). Em ambiente aberto, EIRP limitada a 21 dBm acima de 30° de elevação (item 11.1.1.4).", en: "Conducted power 30 dBm and conducted PSD 17 dBm/MHz. Gain above 6 dBi reduces both (23 dBi for fixed point-to-point, item 11.1.2). Outdoors, EIRP is limited to 21 dBm above 30° elevation (item 11.1.1.4)." },
       }
 
   return [
     lowBand,
     {
       id: 'ANATEL 11.1.4',
-      label: '5.250–5.350 MHz',
+      label: { pt: "5.250–5.350 MHz", en: "5,250–5,350 MHz" },
       minMHz: 5250,
       maxMHz: 5350,
       maxConductedDbm: dynamicLimit,
@@ -152,11 +153,11 @@ function standard5GHzRules(config: ChannelConfig, deviceType: RegulatoryDeviceTy
       antenna: general6,
       noTpcMaxEirpDbm: 27,
       dfsRequired: true,
-      note: 'Potência conduzida limitada ao menor valor entre 24 dBm e 11 + 10log(B); PSD conduzida 11 dBm/MHz. Ganho acima de 6 dBi reduz ambos. DFS obrigatório (item 11.6).',
+      note: { pt: "Potência conduzida limitada ao menor valor entre 24 dBm e 11 + 10log(B); PSD conduzida 11 dBm/MHz. Ganho acima de 6 dBi reduz ambos. DFS obrigatório (item 11.6).", en: "Conducted power limited to the lesser of 24 dBm and 11 + 10log(B); conducted PSD 11 dBm/MHz. Gain above 6 dBi reduces both. DFS required (item 11.6)." },
     },
     {
       id: 'ANATEL 11.3',
-      label: '5.470–5.725 MHz',
+      label: { pt: "5.470–5.725 MHz", en: "5,470–5,725 MHz" },
       minMHz: 5470,
       maxMHz: 5725,
       maxConductedDbm: dynamicLimit,
@@ -165,18 +166,18 @@ function standard5GHzRules(config: ChannelConfig, deviceType: RegulatoryDeviceTy
       antenna: general6,
       noTpcMaxEirpDbm: 27,
       dfsRequired: true,
-      note: 'Potência conduzida limitada ao menor valor entre 24 dBm e 11 + 10log(B); PSD conduzida 11 dBm/MHz. Ganho acima de 6 dBi reduz ambos. DFS obrigatório (item 11.6).',
+      note: { pt: "Potência conduzida limitada ao menor valor entre 24 dBm e 11 + 10log(B); PSD conduzida 11 dBm/MHz. Ganho acima de 6 dBi reduz ambos. DFS obrigatório (item 11.6).", en: "Conducted power limited to the lesser of 24 dBm and 11 + 10log(B); conducted PSD 11 dBm/MHz. Gain above 6 dBi reduces both. DFS required (item 11.6)." },
     },
     {
       id: 'ANATEL 10.3 / 10.5.2',
-      label: '5.725–5.850 MHz · Modulação digital',
+      label: { pt: "5.725–5.850 MHz · Modulação digital", en: "5,725–5,850 MHz · Digital modulation" },
       minMHz: 5725,
       maxMHz: 5850,
       maxConductedDbm: 30,
       psdText: DIGITAL_MODULATION_PSD,
       antenna: general6,
       fixedPtpAntenna: { thresholdDbi: 6, mode: 'NONE' },
-      note: 'Potência conduzida total limitada a 1 W (30 dBm). Ganho acima de 6 dBi reduz a potência; em ponto-a-ponto exclusivo do serviço fixo não há redução (item 10.5.2).',
+      note: { pt: "Potência conduzida total limitada a 1 W (30 dBm). Ganho acima de 6 dBi reduz a potência; em ponto-a-ponto exclusivo do serviço fixo não há redução (item 10.5.2).", en: "Total conducted power limited to 1 W (30 dBm). Gain above 6 dBi reduces power; for fixed point-to-point links only there is no reduction (item 10.5.2)." },
     },
   ]
 }
@@ -187,37 +188,37 @@ function sixGHzRules(deviceType: RegulatoryDeviceType): PowerRule[] {
   if (deviceType === 'CLIENT') {
     return [{
       id: 'ANATEL 11.7.2',
-      label: '5.925–6.425 MHz · Cliente',
+      label: { pt: "5.925–6.425 MHz · Cliente", en: "5,925–6,425 MHz · Client" },
       ...band,
       maxEirpDbm: 24,
       maxPsdDbmMHz: -1,
       psdKind: 'EIRP',
       indoorOnly: true,
-      note: 'EIRP 24 dBm e PSD EIRP −1 dBm/MHz. Opera somente sob controle de um ponto de acesso indoor ou subordinado.',
+      note: { pt: "EIRP 24 dBm e PSD EIRP −1 dBm/MHz. Opera somente sob controle de um ponto de acesso indoor ou subordinado.", en: "EIRP 24 dBm and EIRP PSD −1 dBm/MHz. Operates only under control of an indoor or subordinate access point." },
     }]
   }
 
   if (deviceType === 'VLP') {
     return [{
       id: 'ANATEL 11.7.3',
-      label: '5.925–6.425 MHz · Potência muito baixa (VLP)',
+      label: { pt: "5.925–6.425 MHz · Potência muito baixa (VLP)", en: "5,925–6,425 MHz · Very low power (VLP)" },
       ...band,
       maxEirpDbm: 17,
       maxPsdDbmMHz: -5,
       psdKind: 'EIRP',
-      note: 'EIRP 17 dBm e PSD EIRP −5 dBm/MHz. Antena integrada ao equipamento.',
+      note: { pt: "EIRP 17 dBm e PSD EIRP −5 dBm/MHz. Antena integrada ao equipamento.", en: "EIRP 17 dBm and EIRP PSD −5 dBm/MHz. Antenna integrated into the device." },
     }]
   }
 
   return [{
     id: 'ANATEL 11.7.1',
-    label: '5.925–6.425 MHz · Ponto de acesso indoor / subordinado',
+    label: { pt: "5.925–6.425 MHz · Ponto de acesso indoor / subordinado", en: "5,925–6,425 MHz · Indoor / subordinate access point" },
     ...band,
     maxEirpDbm: 30,
     maxPsdDbmMHz: 5,
     psdKind: 'EIRP',
     indoorOnly: true,
-    note: 'EIRP 30 dBm e PSD EIRP 5 dBm/MHz. Uso somente indoor, alimentação pela rede elétrica e antena integrada (itens 11.7.6 e 11.7.7).',
+    note: { pt: "EIRP 30 dBm e PSD EIRP 5 dBm/MHz. Uso somente indoor, alimentação pela rede elétrica e antena integrada (itens 11.7.6 e 11.7.7).", en: "EIRP 30 dBm and EIRP PSD 5 dBm/MHz. Indoor use only, mains powered, integrated antenna (items 11.7.6 and 11.7.7)." },
   }]
 }
 
@@ -258,8 +259,11 @@ export function getEffectivePowerLimits(
     return {
       ...empty,
       note: config.band === '6 GHz'
-        ? `O bloco (${startMHz}–${endMHz} MHz) está fora da faixa de Wi-Fi em 6 GHz permitida no Brasil (5.925–${ANATEL_6GHZ_MAX_MHZ} MHz, Ato nº 10400/2026).`
-        : 'Nenhuma regra de potência foi mapeada para este bloco.',
+        ? {
+            pt: `O bloco (${startMHz}–${endMHz} MHz) está fora da faixa de Wi-Fi em 6 GHz permitida no Brasil (5.925–${ANATEL_6GHZ_MAX_MHZ} MHz, Ato nº 10400/2026).`,
+            en: `The block (${startMHz}–${endMHz} MHz) is outside the 6 GHz Wi-Fi range allowed in Brazil (5,925–${ANATEL_6GHZ_MAX_MHZ} MHz, Ato nº 10400/2026).`,
+          }
+        : { pt: 'Nenhuma regra de potência foi mapeada para este bloco.', en: 'No power rule is mapped for this block.' },
     }
   }
 
@@ -268,7 +272,10 @@ export function getEffectivePowerLimits(
   if (outsideBand || coversGap) {
     return {
       ...empty,
-      note: `O bloco (${startMHz}–${endMHz} MHz) ultrapassa as faixas permitidas para esta categoria.`,
+      note: {
+        pt: `O bloco (${startMHz}–${endMHz} MHz) ultrapassa as faixas permitidas para esta categoria.`,
+        en: `The block (${startMHz}–${endMHz} MHz) extends beyond the bands allowed for this category.`,
+      },
     }
   }
 
@@ -305,22 +312,28 @@ export function getEffectivePowerLimits(
   const fixedPtpExemptionApplied = perRule.some(r => r.usePtp && antennaGainDbi > 6 && r.reduction < antennaGainDbi - 6)
 
   const textualPsd = applicableRules.filter(rule => rule.psdText)
-  const psdText = textualPsd.length
-    ? [...new Set(textualPsd.map(rule => rule.psdText))].join(' · ')
+  const psdText: Localized | undefined = textualPsd.length
+    ? {
+        pt: [...new Set(textualPsd.map(rule => rule.psdText!.pt))].join(' · '),
+        en: [...new Set(textualPsd.map(rule => rule.psdText!.en))].join(' · '),
+      }
     : undefined
 
-  const notes: string[] = []
+  const notes: Localized[] = []
   notes.push(applicableRules.length > 1
-    ? 'O bloco cruza mais de uma subfaixa. Os limites mostrados são os mais restritivos entre elas.'
-    : applicableRules[0].note ?? '')
+    ? { pt: 'O bloco cruza mais de uma subfaixa. Os limites mostrados são os mais restritivos entre elas.', en: 'The block spans more than one sub-band. The limits shown are the most restrictive among them.' }
+    : applicableRules[0].note ?? { pt: '', en: '' })
   if (antennaReduction > 0 && binding?.antennaRule) {
-    notes.push(`Ganho de antena acima de ${binding.antennaRule.thresholdDbi} dBi: limite conduzido reduzido em ${round2(antennaReduction)} dB.`)
+    notes.push({
+      pt: `Ganho de antena acima de ${binding.antennaRule.thresholdDbi} dBi: limite conduzido reduzido em ${round2(antennaReduction)} dB.`,
+      en: `Antenna gain above ${binding.antennaRule.thresholdDbi} dBi: conducted limit reduced by ${round2(antennaReduction)} dB.`,
+    })
   }
   if (fixedPtpExemptionApplied) {
-    notes.push('Regra de ponto-a-ponto fixo aplicada ao ganho de antena.')
+    notes.push({ pt: 'Regra de ponto-a-ponto fixo aplicada ao ganho de antena.', en: 'Fixed point-to-point rule applied to antenna gain.' })
   }
   if (noTpcLimitApplied) {
-    notes.push('Sem TPC, a EIRP média fica limitada a 27 dBm (item 11.5.1).')
+    notes.push({ pt: 'Sem TPC, a EIRP média fica limitada a 27 dBm (item 11.5.1).', en: 'Without TPC, average EIRP is limited to 27 dBm (item 11.5.1).' })
   }
 
   return {
@@ -340,7 +353,10 @@ export function getEffectivePowerLimits(
     indoorOnly: applicableRules.some(rule => rule.indoorOnly),
     dfsRequired: applicableRules.some(rule => rule.dfsRequired),
     mixedSubBands: applicableRules.length > 1,
-    note: notes.filter(Boolean).join(' '),
+    note: {
+      pt: notes.map(n => n.pt).filter(Boolean).join(' '),
+      en: notes.map(n => n.en).filter(Boolean).join(' '),
+    },
   }
 }
 

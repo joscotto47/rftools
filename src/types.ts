@@ -1,11 +1,11 @@
+import type { Localized } from './i18n'
+
 export type ToolCategory = 'RF' | 'Wi-Fi' | 'Networking' | 'PoE'
 
 export type Tool = {
-  /** Label in the sidebar menu. */
-  name: string
-  /** Title on the dashboard card. */
-  title: string
-  description: string
+  /** Name in the sidebar menu and on the dashboard card. */
+  name: Localized
+  description: Localized
   path: string
   category: ToolCategory
 }

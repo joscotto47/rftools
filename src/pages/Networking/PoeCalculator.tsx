@@ -14,6 +14,7 @@ import {
   type PoeStandard,
 } from '../../calculations/poe'
 import { formatNumber } from '../../calculations/rf'
+import { useI18n } from '../../i18n'
 
 const CABLE_PRESETS = [
   { name: 'Cat5e / 24 AWG', resistance: 9.38 },
@@ -22,6 +23,7 @@ const CABLE_PRESETS = [
 ]
 
 export default function PoeCalculator() {
+  const { t } = useI18n()
   const [standard, setStandard] = useState<PoeStandard>('802.3at')
   const [cableLengthM, setCableLengthM] = useState(50)
   const [deviceConsumptionW, setDeviceConsumptionW] = useState(12.6)
@@ -63,15 +65,17 @@ export default function PoeCalculator() {
     <div>
       <div className="page-title">
         <div>
-          <div className="eyebrow"><PlugZap size={14}/> NETWORKING / POWER</div>
-          <h1>PoE Calculator</h1>
+          <div className="eyebrow"><PlugZap size={14}/> {t('REDES / ENERGIA', 'NETWORKING / POWER')}</div>
+          <h1>{t('Calculadora de PoE', 'PoE Calculator')}</h1>
           <p>
-            Estime potência disponível no PD, perdas no cabo e margem de potência
-            para IEEE 802.3af / at / bt.
+            {t(
+              'Estime potência disponível no PD, perdas no cabo e margem de potência para IEEE 802.3af / at / bt.',
+              'Estimate power available at the PD, cable losses and power margin for IEEE 802.3af / at / bt.',
+            )}
           </p>
         </div>
         <button className="ghost-btn" onClick={reset}>
-          <RotateCcw size={15}/> Redefinir
+          <RotateCcw size={15}/> {t('Redefinir', 'Reset')}
         </button>
       </div>
 
@@ -95,14 +99,14 @@ export default function PoeCalculator() {
 
           <div className="poe-input-grid">
             <NumberField
-              label="PSE Voltage"
+              label={t('Tensão do PSE', 'PSE Voltage')}
               value={voltageV}
               onChange={setVoltageV}
               unit="V"
             />
 
             <NumberField
-              label="Device Consumption"
+              label={t('Consumo do dispositivo', 'Device Consumption')}
               value={deviceConsumptionW}
               onChange={setDeviceConsumptionW}
               unit="W"
@@ -111,25 +115,25 @@ export default function PoeCalculator() {
 
           <div className="poe-standard-summary">
             <Metric
-              label="Max PSE Power"
+              label={t('Potência máx. do PSE', 'Max PSE Power')}
               value={`${formatNumber(result.info.maxPsePowerW, 2)} W`}
             />
             <Metric
-              label="Guaranteed PD Power"
+              label={t('Potência garantida no PD', 'Guaranteed PD Power')}
               value={`${formatNumber(result.info.minPdPowerW, 2)} W`}
             />
             <Metric
-              label="Powered Pairs"
+              label={t('Pares energizados', 'Powered Pairs')}
               value={String(result.info.pairs)}
             />
           </div>
         </section>
 
         <section className="panel">
-          <div className="panel-title"><Cable size={13}/> Cabo</div>
+          <div className="panel-title"><Cable size={13}/> {t('Cabo', 'Cable')}</div>
 
           <NumberField
-            label="Cable Length"
+            label={t('Comprimento do cabo', 'Cable Length')}
             value={cableLengthM}
             onChange={setCableLengthM}
             unit="m"
@@ -143,13 +147,13 @@ export default function PoeCalculator() {
                 onClick={() => setCableResistance(cable.resistance)}
               >
                 <strong>{cable.name}</strong>
-                <span>{cable.resistance} Ω / 100 m / cond.</span>
+                <span>{cable.resistance} Ω / 100 m / {t('cond.', 'cond.')}</span>
               </button>
             ))}
           </div>
 
           <NumberField
-            label="Conductor Resistance"
+            label={t('Resistência do condutor', 'Conductor Resistance')}
             value={cableResistance}
             onChange={setCableResistance}
             unit="Ω/100m"
@@ -163,17 +167,17 @@ export default function PoeCalculator() {
         </div>
 
         <div>
-          <span>Power Status</span>
+          <span>{t('Status de potência', 'Power Status')}</span>
           <strong>{result.pass ? 'PASS' : 'FAIL'}</strong>
           <p>
             {result.pass
-              ? 'A potência estimada disponível no PD é maior que o consumo informado.'
-              : 'O consumo informado excede a potência estimada disponível no PD.'}
+              ? t('A potência estimada disponível no PD é maior que o consumo informado.', 'Estimated power available at the PD exceeds the device consumption.')
+              : t('O consumo informado excede a potência estimada disponível no PD.', 'Device consumption exceeds the estimated power available at the PD.')}
           </p>
         </div>
 
         <div className="poe-margin-box">
-          <span>Power Margin</span>
+          <span>{t('Margem de potência', 'Power Margin')}</span>
           <strong>
             {result.marginW >= 0 ? '+' : ''}
             {formatNumber(result.marginW, 2)} W
@@ -184,35 +188,35 @@ export default function PoeCalculator() {
       <div className="poe-metrics-grid">
         <PoeCard
           icon={<Zap size={18}/>}
-          label="Potência estimada no PD"
+          label={t('Potência estimada no PD', 'Estimated power at PD')}
           value={`${formatNumber(result.estimatedAvailableAtPd, 2)} W`}
-          note="PSE máximo menos perda resistiva estimada"
+          note={t('PSE máximo menos perda resistiva estimada', 'Max PSE power minus estimated resistive loss')}
         />
 
         <PoeCard
           icon={<Cable size={18}/>}
-          label="Perda estimada no cabo"
+          label={t('Perda estimada no cabo', 'Estimated cable loss')}
           value={`${formatNumber(result.deviceCableLoss, 3)} W`}
-          note={`Para a carga informada em ${formatNumber(cableLengthM, 0)} m`}
+          note={t(`Para a carga informada em ${formatNumber(cableLengthM, 0)} m`, `For the given load over ${formatNumber(cableLengthM, 0)} m`)}
         />
 
         <PoeCard
           icon={<PlugZap size={18}/>}
-          label="Corrente estimada"
+          label={t('Corrente estimada', 'Estimated current')}
           value={`${formatNumber(result.currentA * 1000, 1)} mA`}
-          note={`Aproximação em ${formatNumber(voltageV, 1)} V`}
+          note={t(`Aproximação em ${formatNumber(voltageV, 1)} V`, `Approximation at ${formatNumber(voltageV, 1)} V`)}
         />
 
         <PoeCard
           icon={<BatteryCharging size={18}/>}
-          label="Utilização da potência"
+          label={t('Utilização da potência', 'Power utilization')}
           value={`${formatNumber(result.utilizationPercent, 1)}%`}
-          note={`${formatNumber(deviceConsumptionW, 2)} W consumidos`}
+          note={t(`${formatNumber(deviceConsumptionW, 2)} W consumidos`, `${formatNumber(deviceConsumptionW, 2)} W consumed`)}
         />
       </div>
 
       <section className="panel poe-flow-panel">
-        <div className="panel-title">Power Path</div>
+        <div className="panel-title">{t('Caminho da potência', 'Power Path')}</div>
 
         <div className="poe-flow">
           <div>
@@ -223,34 +227,34 @@ export default function PoeCalculator() {
           <b>→</b>
 
           <div>
-            <span>Cable Loss</span>
+            <span>{t('Perda no cabo', 'Cable Loss')}</span>
             <strong>−{formatNumber(result.standardCableLoss, 2)} W</strong>
           </div>
 
           <b>→</b>
 
           <div className="highlight">
-            <span>Estimated PD Available</span>
+            <span>{t('Disponível no PD (estimado)', 'Estimated PD Available')}</span>
             <strong>{formatNumber(result.estimatedAvailableAtPd, 2)} W</strong>
           </div>
 
           <b>→</b>
 
           <div>
-            <span>Device Load</span>
+            <span>{t('Carga do dispositivo', 'Device Load')}</span>
             <strong>{formatNumber(deviceConsumptionW, 2)} W</strong>
           </div>
         </div>
       </section>
 
       <section className="info-panel">
-        <div className="eyebrow"><Info size={14}/> NOTA DE ENGENHARIA</div>
-        <h3>O cálculo de perda no cabo é uma estimativa resistiva.</h3>
+        <div className="eyebrow"><Info size={14}/> {t('NOTA DE ENGENHARIA', 'ENGINEERING NOTE')}</div>
+        <h3>{t('O cálculo de perda no cabo é uma estimativa resistiva.', 'The cable loss calculation is a resistive estimate.')}</h3>
         <p>
-          A potência garantida pelo padrão no PD já considera condições normativas
-          de cabeamento. O cálculo adicional de I²R serve para análise de engenharia
-          e comparação de comprimentos/bitolas, mas não substitui os limites e testes
-          definidos pelo padrão IEEE nem a especificação real do PSE e do PD.
+          {t(
+            'A potência garantida pelo padrão no PD já considera condições normativas de cabeamento. O cálculo adicional de I²R serve para análise de engenharia e comparação de comprimentos/bitolas, mas não substitui os limites e testes definidos pelo padrão IEEE nem a especificação real do PSE e do PD.',
+            'The PD power guaranteed by the standard already accounts for normative cabling conditions. The extra I²R calculation is for engineering analysis and comparing lengths and gauges; it does not replace the limits and tests defined by the IEEE standard or the actual PSE and PD specifications.',
+          )}
         </p>
       </section>
     </div>
