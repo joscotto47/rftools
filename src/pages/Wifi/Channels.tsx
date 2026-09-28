@@ -51,7 +51,7 @@ export default function Channels() {
   const selectedRegulatory = selectedEntry?.regulatory ?? null
   const powerLimits = useMemo(
     () => selectedChannel && regulatoryProfile === 'BR-ANATEL'
-      ? getEffectivePowerLimits(selectedChannel, deviceType, 0, 'GENERAL')
+      ? getEffectivePowerLimits(selectedChannel, deviceType)
       : null,
     [selectedChannel, regulatoryProfile, deviceType],
   )
@@ -283,23 +283,27 @@ export default function Channels() {
 
           <div className="power-limit-grid">
             <PowerLimit
-              label="Max TX Power"
+              label="Max TX Power (total conduzido)"
               value={
                 powerLimits.baseMaxConductedDbm !== undefined
                   ? `${powerLimits.baseMaxConductedDbm.toFixed(2)} dBm`
-                  : 'Depende da categoria'
+                  : powerLimits.applicable ? 'Regra por EIRP' : '—'
               }
             />
             <PowerLimit
               label="Max EIRP"
-              value={powerLimits.maxEirpDbm !== undefined ? `${powerLimits.maxEirpDbm.toFixed(2)} dBm` : 'Não resumido'}
+              value={
+                powerLimits.maxEirpDbm !== undefined
+                  ? `${powerLimits.maxEirpDbm.toFixed(2)} dBm`
+                  : powerLimits.applicable ? 'Conduzido + ganho até 6 dBi' : '—'
+              }
             />
             <PowerLimit
-              label="Max PSD"
+              label={powerLimits.psdKind === 'EIRP' ? 'Max PSD (EIRP)' : 'Max PSD (conduzida)'}
               value={
                 powerLimits.maxPsdDbmMHz !== undefined
                   ? `${powerLimits.maxPsdDbmMHz.toFixed(2)} dBm/MHz`
-                  : powerLimits.psdText ?? 'Não resumido'
+                  : powerLimits.psdText ?? '—'
               }
             />
             <PowerLimit
@@ -307,6 +311,16 @@ export default function Channels() {
               value={powerLimits.indoorOnly ? 'Indoor' : 'Conforme regra aplicável'}
             />
           </div>
+
+          {!powerLimits.applicable && (
+            <div className="mixed-band-warning">
+              <ShieldAlert size={16}/>
+              <div>
+                <strong>Fora das faixas permitidas</strong>
+                <p>{powerLimits.note}</p>
+              </div>
+            </div>
+          )}
 
           {powerLimits.mixedSubBands && (
             <div className="mixed-band-warning">

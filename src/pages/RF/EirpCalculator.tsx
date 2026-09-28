@@ -21,6 +21,7 @@ import {
   type WifiBand,
 } from '../../data/wifiChannels'
 import {
+  checkCompliance,
   getEffectivePowerLimits,
   type ApplicationType,
   type RegulatoryDeviceType,
@@ -42,6 +43,7 @@ export default function EirpCalculator() {
   const [channel, setChannel] = useState(42)
   const [deviceType, setDeviceType] = useState<RegulatoryDeviceType>('AP')
   const [applicationType, setApplicationType] = useState<ApplicationType>('GENERAL')
+  const [hasTpc, setHasTpc] = useState(true)
 
   const channelConfigs = useMemo(
     () => getChannelConfigs(band, width),
@@ -81,35 +83,22 @@ export default function EirpCalculator() {
           selectedConfig,
           deviceType,
           Number(antennaGain) || 0,
-          applicationType,
+          { applicationType, hasTpc },
         )
       : null,
-    [regulatoryEnabled, selectedConfig, deviceType, antennaGain, applicationType],
+    [regulatoryEnabled, selectedConfig, deviceType, antennaGain, applicationType, hasTpc],
   )
 
   const regulatoryResult = useMemo(() => {
-    if (!values || !limits) return null
-
-    const eirpPass =
-      limits.maxEirpDbm === undefined || values.eirp <= limits.maxEirpDbm
-
-    const txPass =
-      limits.adjustedMaxConductedDbm === undefined || values.tx <= limits.adjustedMaxConductedDbm
-
-    const eirpMargin =
-      limits.maxEirpDbm !== undefined ? limits.maxEirpDbm - values.eirp : undefined
-
-    const txMargin =
-      limits.adjustedMaxConductedDbm !== undefined ? limits.adjustedMaxConductedDbm - values.tx : undefined
-
-    return {
-      pass: eirpPass && txPass,
-      eirpPass,
-      txPass,
-      eirpMargin,
-      txMargin,
-    }
-  }, [values, limits])
+    if (!values || !limits || !selectedConfig) return null
+    return checkCompliance({
+      txPowerPerChainDbm: values.tx,
+      txChains: values.spatialStreams,
+      antennaGainDbi: values.gain,
+      cableLossDb: values.loss,
+      channelWidthMHz: selectedConfig.width,
+    }, limits)
+  }, [values, limits, selectedConfig])
 
   const reset = () => {
     setTxPower('23')
@@ -123,6 +112,7 @@ export default function EirpCalculator() {
     setChannel(42)
     setDeviceType('AP')
     setApplicationType('GENERAL')
+    setHasTpc(true)
   }
 
   function changeBand(nextBand: WifiBand) {
@@ -145,7 +135,7 @@ export default function EirpCalculator() {
     setChannel(first?.channel ?? 1)
   }
 
-  const formula = 'EIRP = TX Power + Antenna Gain − Path Loss + 10·log₁₀(NSS)'
+  const formula = 'EIRP = TX Power por cadeia + 10·log₁₀(cadeias) + Antenna Gain − Cable Loss'
 
   return (
     <div>
@@ -154,7 +144,7 @@ export default function EirpCalculator() {
           <div className="eyebrow">RF / POWER</div>
           <h1>Calculadora de EIRP</h1>
           <p>
-            Calcule EIRP considerando TX Power, Antenna Gain, perdas, Spatial Streams
+            Calcule EIRP considerando TX Power, Antenna Gain, perdas e cadeias de transmissão,
             e compare o resultado com o perfil Brasil / ANATEL.
           </p>
         </div>
@@ -167,7 +157,7 @@ export default function EirpCalculator() {
         <section className="panel input-panel">
           <div className="panel-title">Parâmetros RF</div>
 
-          <label>TX Power por Spatial Stream</label>
+          <label>TX Power por cadeia de TX</label>
           <div className="field-with-unit">
             <input value={txPower} onChange={(e) => setTxPower(e.target.value)} inputMode="decimal" />
             <span>dBm</span>
@@ -179,13 +169,13 @@ export default function EirpCalculator() {
             <span>dBi</span>
           </div>
 
-          <label>Path / Cable Loss</label>
+          <label>Cable Loss</label>
           <div className="field-with-unit">
             <input value={pathLoss} onChange={(e) => setPathLoss(e.target.value)} inputMode="decimal" />
             <span>dB</span>
           </div>
 
-          <label>Spatial Streams (NSS)</label>
+          <label>Cadeias de TX (antenas transmitindo)</label>
           <select
             className="full-select"
             value={spatialStreams}
@@ -193,7 +183,7 @@ export default function EirpCalculator() {
           >
             {STREAM_OPTIONS.map((streams) => (
               <option key={streams} value={streams}>
-                {streams} Spatial Stream{streams > 1 ? 's' : ''}
+                {streams} {streams > 1 ? 'cadeias' : 'cadeia'}
               </option>
             ))}
           </select>
@@ -221,7 +211,7 @@ export default function EirpCalculator() {
 
           <div className="result-row">
             <div>
-              <span>TX Power / Spatial Stream</span>
+              <span>TX Power por cadeia</span>
               <strong>{values ? `${formatNumber(values.tx, 3)} dBm` : '—'}</strong>
             </div>
             <CopyButton value={values ? `${values.tx} dBm` : ''} />
@@ -236,14 +226,14 @@ export default function EirpCalculator() {
 
           <div className="result-row">
             <div>
-              <span>Spatial Streams</span>
-              <strong>{values ? values.spatialStreams : '—'}</strong>
+              <span>Potência conduzida total</span>
+              <strong>{values ? `${formatNumber(values.tx + values.streamFactorDb, 3)} dBm` : '—'}</strong>
             </div>
           </div>
 
           <div className="result-row">
             <div>
-              <span>Ganho equivalente de NSS</span>
+              <span>Soma das {values?.spatialStreams ?? ''} cadeias</span>
               <strong>{values ? `+${formatNumber(values.streamFactorDb, 3)} dB` : '—'}</strong>
             </div>
           </div>
@@ -311,7 +301,7 @@ export default function EirpCalculator() {
                 </select>
               </div>
 
-              {band === '5 GHz' && (
+              {band !== '6 GHz' && (
                 <div>
                   <label>Application Type</label>
                   <select
@@ -322,6 +312,13 @@ export default function EirpCalculator() {
                     <option value="FIXED_PTP">Fixed Point-to-Point</option>
                   </select>
                 </div>
+              )}
+
+              {band === '5 GHz' && (
+                <label className="reg-toggle">
+                  <input type="checkbox" checked={hasTpc} onChange={(e) => setHasTpc(e.target.checked)} />
+                  <span>Possui TPC</span>
+                </label>
               )}
             </div>
 
@@ -335,9 +332,11 @@ export default function EirpCalculator() {
                     <span>Regulatory Status</span>
                     <strong>{regulatoryResult.pass ? 'PASS' : 'FAIL'}</strong>
                     <p>
-                      {regulatoryResult.pass
-                        ? 'Os valores calculados estão dentro dos limites numéricos mapeados para esta configuração.'
-                        : 'Um ou mais limites regulatórios numéricos foram excedidos.'}
+                      {!regulatoryResult.bandPass
+                        ? 'O canal selecionado está fora das faixas permitidas para esta categoria.'
+                        : regulatoryResult.pass
+                          ? 'Os valores calculados estão dentro dos limites numéricos mapeados para esta configuração.'
+                          : 'Um ou mais limites regulatórios numéricos foram excedidos.'}
                     </p>
                   </div>
                 </div>
@@ -345,29 +344,35 @@ export default function EirpCalculator() {
                 <div className="compliance-grid">
                   <ComplianceMetric
                     title="EIRP calculado"
-                    current={values ? `${formatNumber(values.eirp, 2)} dBm` : '—'}
-                    limit={limits.maxEirpDbm !== undefined ? `${formatNumber(limits.maxEirpDbm, 2)} dBm` : 'Não resumido'}
+                    current={`${formatNumber(regulatoryResult.eirpDbm, 2)} dBm`}
+                    limit={limits.maxEirpDbm !== undefined ? `${formatNumber(limits.maxEirpDbm, 2)} dBm` : 'sem limite direto de EIRP'}
                     margin={regulatoryResult.eirpMargin}
                     pass={regulatoryResult.eirpPass}
                   />
 
                   <ComplianceMetric
-                    title="TX Power informado"
-                    current={values ? `${formatNumber(values.tx, 2)} dBm` : '—'}
-                    limit={limits.adjustedMaxConductedDbm !== undefined ? `${formatNumber(limits.adjustedMaxConductedDbm, 2)} dBm` : 'Não resumido'}
-                    margin={regulatoryResult.txMargin}
-                    pass={regulatoryResult.txPass}
+                    title="Potência conduzida total"
+                    current={`${formatNumber(regulatoryResult.totalConductedDbm, 2)} dBm`}
+                    limit={limits.adjustedMaxConductedDbm !== undefined ? `${formatNumber(limits.adjustedMaxConductedDbm, 2)} dBm` : 'sem limite conduzido (regra por EIRP)'}
+                    margin={regulatoryResult.conductedMargin}
+                    pass={regulatoryResult.conductedPass}
                   />
 
-                  <div className="compliance-card">
-                    <span>Max PSD</span>
-                    <strong>
-                      {limits.adjustedMaxPsdDbmMHz !== undefined
-                        ? `${formatNumber(limits.adjustedMaxPsdDbmMHz, 2)} dBm/MHz`
-                        : limits.psdText ?? 'Não resumido'}
-                    </strong>
-                    <small>Referência regulatória</small>
-                  </div>
+                  {limits.adjustedMaxPsdDbmMHz !== undefined ? (
+                    <ComplianceMetric
+                      title={limits.psdKind === 'EIRP' ? 'PSD EIRP estimada' : 'PSD conduzida estimada'}
+                      current={`${formatNumber(limits.psdKind === 'EIRP' ? regulatoryResult.eirpPsdDbmMHz : regulatoryResult.conductedPsdDbmMHz, 2)} dBm/MHz`}
+                      limit={`${formatNumber(limits.adjustedMaxPsdDbmMHz, 2)} dBm/MHz`}
+                      margin={regulatoryResult.psdMargin}
+                      pass={regulatoryResult.psdPass}
+                    />
+                  ) : (
+                    <div className="compliance-card">
+                      <span>Max PSD</span>
+                      <strong>{limits.psdText ?? 'Não resumido'}</strong>
+                      <small>Referência regulatória</small>
+                    </div>
+                  )}
 
                   <div className="compliance-card">
                     <span>Condição</span>
@@ -443,14 +448,15 @@ export default function EirpCalculator() {
               </div>
             </div>
             <div className="reverse-result">
-              <span>TX Power necessário por Spatial Stream</span>
+              <span>TX Power necessário por cadeia</span>
               <strong>{values ? `${formatNumber(values.resultingTx, 3)} dBm` : '—'}</strong>
             </div>
           </div>
         ) : (
           <p className="helper-text">
-            O cálculo considera que o TX Power informado é por Spatial Stream e que todos os streams
-            transmitem com a mesma potência.
+            O cálculo considera que o TX Power informado é por cadeia de transmissão e que todas as
+            cadeias transmitem com a mesma potência. Os limites de potência conduzida da ANATEL valem
+            para a soma de todas as cadeias (item 10.3.4 do Ato nº 14448).
           </p>
         )}
       </section>
@@ -460,9 +466,11 @@ export default function EirpCalculator() {
         <h3>O PASS/FAIL compara os resultados com os limites regulatórios mapeados.</h3>
         <p>
           A verificação regulatória usa o Channel Width, Center Channel e tipo de equipamento
-          selecionados. Limites numéricos são comparados automaticamente; requisitos adicionais
-          como DFS, ambiente indoor, características de antena e condições específicas continuam
-          exibidos como regras complementares e devem ser considerados na análise final.
+          selecionados. Potência conduzida, EIRP e PSD são comparados automaticamente. A PSD é
+          estimada supondo potência distribuída de forma uniforme na largura do canal; a medição
+          real usa a largura de 26 dB da emissão. Requisitos como DFS, ambiente indoor,
+          características de antena e condições específicas aparecem como regras complementares
+          e devem ser considerados na análise final.
         </p>
       </section>
     </div>
